@@ -33,9 +33,9 @@ export function useRegister(
 ) {
   return useMutation<AuthTokenResponse, ApiError, RegisterBody>({
     mutationFn: authApi.register,
-    onSuccess(data, vars, ctx) {
+    onSuccess(data, vars, ctx, mutation) {
       onAuthSuccess(data);
-      options?.onSuccess?.(data, vars, ctx);
+      options?.onSuccess?.(data, vars, ctx, mutation);
     },
     ...options,
   });
@@ -46,9 +46,9 @@ export function useLogin(
 ) {
   return useMutation<AuthTokenResponse, ApiError, LoginBody>({
     mutationFn: authApi.login,
-    onSuccess(data, vars, ctx) {
+    onSuccess(data, vars, ctx, mutation) {
       onAuthSuccess(data);
-      options?.onSuccess?.(data, vars, ctx);
+      options?.onSuccess?.(data, vars, ctx, mutation);
     },
     ...options,
   });
@@ -77,9 +77,9 @@ export function useGoogleSignIn(
 ) {
   return useMutation<AuthTokenResponse, ApiError, GoogleAuthBody>({
     mutationFn: authApi.signInWithGoogle,
-    onSuccess(data, vars, ctx) {
+    onSuccess(data, vars, ctx, mutation) {
       onAuthSuccess(data);
-      options?.onSuccess?.(data, vars, ctx);
+      options?.onSuccess?.(data, vars, ctx, mutation);
     },
     ...options,
   });
@@ -90,9 +90,9 @@ export function useAppleSignIn(
 ) {
   return useMutation<AuthTokenResponse, ApiError, AppleAuthBody>({
     mutationFn: authApi.signInWithApple,
-    onSuccess(data, vars, ctx) {
+    onSuccess(data, vars, ctx, mutation) {
       onAuthSuccess(data);
-      options?.onSuccess?.(data, vars, ctx);
+      options?.onSuccess?.(data, vars, ctx, mutation);
     },
     ...options,
   });
@@ -103,9 +103,9 @@ export function useRefreshTokens(
 ) {
   return useMutation<AuthTokenResponse, ApiError, RefreshBody>({
     mutationFn: authApi.refreshTokens,
-    onSuccess(data, vars, ctx) {
+    onSuccess(data, vars, ctx, mutation) {
       onAuthSuccess(data);
-      options?.onSuccess?.(data, vars, ctx);
+      options?.onSuccess?.(data, vars, ctx, mutation);
     },
     ...options,
   });
@@ -116,9 +116,9 @@ export function useLogout(
 ) {
   return useMutation<void, ApiError, LogoutBody>({
     mutationFn: authApi.logout,
-    onSuccess(data, vars, ctx) {
+    onSuccess(data, vars, ctx, mutation) {
       onLogoutSuccess();
-      options?.onSuccess?.(data, vars, ctx);
+      options?.onSuccess?.(data, vars, ctx, mutation);
     },
     ...options,
   });

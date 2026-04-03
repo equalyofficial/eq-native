@@ -1840,6 +1840,17 @@
                     "error": "Name must be between 3 and 100 characters",
                     "type": "string"
                   },
+                  "email": {
+                    "format": "email",
+                    "maxLength": 255,
+                    "error": "Email must be a valid email address",
+                    "type": "string"
+                  },
+                  "phone": {
+                    "pattern": "^\\d{10}$",
+                    "error": "Phone number must be exactly 10 digits",
+                    "type": "string"
+                  },
                   "upiId": {
                     "maxLength": 50,
                     "error": "UPI ID must be less than 50 characters",
@@ -1864,6 +1875,17 @@
                     "error": "Name must be between 3 and 100 characters",
                     "type": "string"
                   },
+                  "email": {
+                    "format": "email",
+                    "maxLength": 255,
+                    "error": "Email must be a valid email address",
+                    "type": "string"
+                  },
+                  "phone": {
+                    "pattern": "^\\d{10}$",
+                    "error": "Phone number must be exactly 10 digits",
+                    "type": "string"
+                  },
                   "upiId": {
                     "maxLength": 50,
                     "error": "UPI ID must be less than 50 characters",
@@ -1886,6 +1908,17 @@
                     "minLength": 3,
                     "maxLength": 100,
                     "error": "Name must be between 3 and 100 characters",
+                    "type": "string"
+                  },
+                  "email": {
+                    "format": "email",
+                    "maxLength": 255,
+                    "error": "Email must be a valid email address",
+                    "type": "string"
+                  },
+                  "phone": {
+                    "pattern": "^\\d{10}$",
+                    "error": "Phone number must be exactly 10 digits",
                     "type": "string"
                   },
                   "upiId": {

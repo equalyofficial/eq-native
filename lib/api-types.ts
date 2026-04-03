@@ -1352,16 +1352,25 @@ export interface operations {
             content: {
                 "application/json": {
                     name?: string;
+                    /** Format: email */
+                    email?: string;
+                    phone?: string;
                     upiId?: string;
                     preferredCurrency?: string;
                 };
                 "application/x-www-form-urlencoded": {
                     name?: string;
+                    /** Format: email */
+                    email?: string;
+                    phone?: string;
                     upiId?: string;
                     preferredCurrency?: string;
                 };
                 "multipart/form-data": {
                     name?: string;
+                    /** Format: email */
+                    email?: string;
+                    phone?: string;
                     upiId?: string;
                     preferredCurrency?: string;
                 };

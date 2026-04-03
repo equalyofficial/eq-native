@@ -6,13 +6,13 @@ import { withUniwind } from 'uniwind';
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-effective-color-scheme';
 
 const StyledBlurView = withUniwind(BlurView);
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colorScheme = useEffectiveColorScheme();
+  const colors = Colors[colorScheme];
 
   return (
     <Tabs
