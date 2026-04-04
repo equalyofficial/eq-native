@@ -20,7 +20,7 @@ export default function RegisterScreen() {
       title={
         <Text className="text-6xl font-bold tracking-tight text-foreground">
           Create{"\n"}
-          <Text className="text-indigo-400">Account</Text>
+          <Text className="text-accent">Account</Text>
         </Text>
       }
       description="Start splitting expenses with clarity."

@@ -21,7 +21,7 @@ export function AuthPrimaryButton({
       onPress={onPress}
       disabled={isLoading}
       className={[
-        "mt-2 min-h-14 flex-row items-center justify-center rounded-3xl bg-primary px-5",
+        "mt-2 min-h-14 flex-row items-center justify-center rounded-3xl bg-button-primary px-5",
         isLoading ? "opacity-70" : "opacity-100",
       ].join(" ")}
     >
@@ -29,7 +29,9 @@ export function AuthPrimaryButton({
         <ActivityIndicator colorClassName="accent-primary-foreground" />
       ) : (
         <>
-          <Text className="text-base font-bold text-primary-foreground">{label}</Text>
+          <Text className="text-base font-bold text-primary-foreground">
+            {label}
+          </Text>
           {rightIcon ? <View className="ml-2 mt-0.5">{rightIcon}</View> : null}
         </>
       )}

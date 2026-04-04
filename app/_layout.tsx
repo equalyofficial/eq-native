@@ -1,5 +1,3 @@
-import "../global.css";
-
 import {
   Outfit_400Regular,
   Outfit_500Medium,
@@ -7,59 +5,28 @@ import {
   Outfit_700Bold,
   useFonts,
 } from "@expo-google-fonts/outfit";
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { Stack } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
+import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
 import "react-native-reanimated";
+import { useEffect } from "react";
+import { queryClient } from "@/lib/query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import {
   SafeAreaProvider,
-  SafeAreaListener,
+  initialWindowMetrics,
 } from "react-native-safe-area-context";
-import { Uniwind } from "uniwind";
-
-import { useEffectiveColorScheme } from "@/hooks/use-effective-color-scheme";
-import { queryClient } from "@/lib/query";
-
-SplashScreen.preventAutoHideAsync();
-Uniwind.setTheme("system");
-
-const EqualyLightTheme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    background: "#ffffff",
-    card: "#ffffff",
-    text: "#000000",
-    border: "#e5e5e5",
-    primary: "#000000",
-  },
-};
-
-const EqualyDarkTheme = {
-  ...DarkTheme,
-  colors: {
-    ...DarkTheme.colors,
-    background: "#000000",
-    card: "#000000",
-    text: "#ffffff",
-    border: "#1a1a1a",
-    primary: "#ffffff",
-  },
-};
+import { useUniwind } from "uniwind";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import "../global.css";
 
 export const unstable_settings = {
   initialRouteName: "(auth)",
 };
 
 export default function RootLayout() {
-  const colorScheme = useEffectiveColorScheme();
+  const systemColorScheme = useColorScheme();
+  const { theme, hasAdaptiveThemes } = useUniwind();
+
   const [fontsLoaded] = useFonts({
     Outfit_400Regular,
     Outfit_500Medium,
@@ -75,31 +42,40 @@ export default function RootLayout() {
 
   if (!fontsLoaded) return null;
 
+  const resolvedTheme =
+    hasAdaptiveThemes && systemColorScheme
+      ? systemColorScheme
+      : theme === "dark"
+        ? "dark"
+        : "light";
+  const isDark = resolvedTheme === "dark";
+  const backgroundColor = isDark ? "#0A0A0A" : "#FFFFFF";
+
   return (
     <QueryClientProvider client={queryClient}>
-      <SafeAreaProvider>
-        <SafeAreaListener
-          onChange={({ insets }) => {
-            Uniwind.updateInsets(insets);
+      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: {
+              backgroundColor,
+            },
           }}
         >
-          <ThemeProvider
-            value={colorScheme === "dark" ? EqualyDarkTheme : EqualyLightTheme}
-          >
-            <Stack>
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="modal"
-                options={{ presentation: "modal", title: "Modal" }}
-              />
-            </Stack>
-            <StatusBar
-              style={colorScheme === "dark" ? "light" : "dark"}
-              // backgroundColor={colorScheme === "dark" ? "#000000" : "#ffffff"}
-            />
-          </ThemeProvider>
-        </SafeAreaListener>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="modal"
+            options={{ presentation: "modal", title: "Modal" }}
+          />
+        </Stack>
+
+        {/* <StatusBar */}
+        {/*   key={resolvedTheme} */}
+        {/*   style={isDark ? "light" : "dark"} */}
+        {/*   animated */}
+        {/* /> */}
+        <StatusBar style="auto" animated />
       </SafeAreaProvider>
     </QueryClientProvider>
   );

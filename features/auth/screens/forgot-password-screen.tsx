@@ -64,7 +64,7 @@ export function ForgotPasswordScreen() {
       title={
         <Text className="text-6xl font-bold text-foreground text-left tracking-tight">
           Reset{"\n"}
-          <Text className="text-indigo-400">Password</Text>
+          <Text className="text-accent">Password</Text>
         </Text>
       }
       description="Enter your phone number to receive a reset code."
@@ -73,8 +73,8 @@ export function ForgotPasswordScreen() {
           onPress={() => router.push("/login")}
           className="flex-row items-center gap-2"
         >
-          <Feather name="arrow-left" size={16} color="#A5B4FC" />
-          <Text className="text-sm font-bold text-indigo-400">
+          <Feather name="arrow-left" size={16} color="#818CF8" />
+          <Text className="text-sm font-bold text-accent">
             Return to Login
           </Text>
         </Pressable>

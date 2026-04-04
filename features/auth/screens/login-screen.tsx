@@ -20,7 +20,7 @@ export default function LoginScreen() {
       title={
         <Text className="text-6xl font-bold tracking-tight text-foreground">
           Welcome{"\n"}
-          <Text className="text-indigo-400">Back</Text>
+          <Text className="text-accent">Back</Text>
         </Text>
       }
       description="The premium ledger for modern collective living."
@@ -54,7 +54,7 @@ export default function LoginScreen() {
           textContentType="password"
           labelRight={
             <Pressable onPress={() => router.push("/forgot-password")}>
-              <Text className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-400">
+              <Text className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
                 Forgot Password?
               </Text>
             </Pressable>

@@ -44,3 +44,10 @@ app-example
 
 .agents
 .claude
+.cursorrules
+.codex.backup
+.opencode.json
+.mcp.json
+.windsurfrules
+GEMINI.md
+CLAUDE.md

@@ -1,58 +1,30 @@
-import { BlurView } from 'expo-blur';
 import { Tabs } from 'expo-router';
 import { StyleSheet } from 'react-native';
-import { withUniwind } from 'uniwind';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useEffectiveColorScheme } from '@/hooks/use-effective-color-scheme';
-
-const StyledBlurView = withUniwind(BlurView);
+import { CustomBottomTabBar } from '@/components/custom-bottom-tab-bar';
 
 export default function TabLayout() {
-  const colorScheme = useEffectiveColorScheme();
-  const colors = Colors[colorScheme];
-
   return (
     <Tabs
+      tabBar={(props) => <CustomBottomTabBar {...props} />}
       screenOptions={{
         headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarActiveTintColor: colors.tint,
-        tabBarInactiveTintColor: colors.tabIconDefault,
         tabBarStyle: styles.tabBar,
-        tabBarBackground: () => (
-          <StyledBlurView
-            intensity={80}
-            tint={colorScheme === 'dark' ? 'dark' : 'light'}
-            className="absolute inset-0"
-          />
-        ),
       }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={24} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color }) => <IconSymbol size={24} name="person.fill" color={color} />,
-        }}
-      />
+      <Tabs.Screen name="index" options={{ title: 'Home' }} />
+      <Tabs.Screen name="groups" options={{ title: 'Groups' }} />
+      <Tabs.Screen name="friends" options={{ title: 'Friends' }} />
+      <Tabs.Screen name="activity" options={{ title: 'Activity' }} />
+      <Tabs.Screen name="profile" options={{ href: null }} />
     </Tabs>
   );
 }
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: 'transparent',
     borderTopWidth: 0,
     elevation: 0,
     position: 'absolute',
+    backgroundColor: 'transparent',
   },
 });
