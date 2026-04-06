@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 @import 'uniwind';
+@import 'heroui-native/styles';
+
+@source "./node_modules/heroui-native/lib";
 
 @theme {
   --color-primary: #4f46e5;

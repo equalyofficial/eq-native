@@ -1,4 +1,5 @@
-import { Image, Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
+import { TabProfileButton } from "@/components/tab-profile-button";
 
 export function HomeHeader() {
   return (
@@ -9,12 +10,7 @@ export function HomeHeader() {
         </Text>
       </View>
 
-      <Pressable className="h-12 w-12 overflow-hidden rounded-full border border-border bg-card">
-        <Image
-          source={{ uri: "https://i.pravatar.cc/160?img=19" }}
-          className="h-full w-full"
-        />
-      </Pressable>
+      <TabProfileButton />
     </View>
   );
 }

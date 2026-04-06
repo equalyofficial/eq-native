@@ -6,11 +6,13 @@ import {
   useFonts,
 } from "@expo-google-fonts/outfit";
 import { SplashScreen, Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
+import { StatusBar, setStatusBarStyle } from "expo-status-bar";
 import "react-native-reanimated";
 import { useEffect } from "react";
 import { queryClient } from "@/lib/query";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { HeroUINativeProvider } from "heroui-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
   SafeAreaProvider,
   initialWindowMetrics,
@@ -27,6 +29,14 @@ export default function RootLayout() {
   const systemColorScheme = useColorScheme();
   const { theme, hasAdaptiveThemes } = useUniwind();
 
+  const resolvedTheme =
+    hasAdaptiveThemes && systemColorScheme
+      ? systemColorScheme
+      : theme === "dark"
+        ? "dark"
+        : "light";
+  const isDark = resolvedTheme === "dark";
+
   const [fontsLoaded] = useFonts({
     Outfit_400Regular,
     Outfit_500Medium,
@@ -40,43 +50,40 @@ export default function RootLayout() {
     }
   }, [fontsLoaded]);
 
+  // Imperatively sync status bar style on every theme change.
+  // The declarative <StatusBar style> prop is unreliable on Android
+  // after the component has already mounted.
+  useEffect(() => {
+    setStatusBarStyle(isDark ? "light" : "dark", true);
+  }, [isDark]);
+
   if (!fontsLoaded) return null;
 
-  const resolvedTheme =
-    hasAdaptiveThemes && systemColorScheme
-      ? systemColorScheme
-      : theme === "dark"
-        ? "dark"
-        : "light";
-  const isDark = resolvedTheme === "dark";
-  const backgroundColor = isDark ? "#0A0A0A" : "#FFFFFF";
-
   return (
-    <QueryClientProvider client={queryClient}>
-      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: {
-              backgroundColor,
-            },
-          }}
-        >
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="modal"
-            options={{ presentation: "modal", title: "Modal" }}
-          />
-        </Stack>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+          <HeroUINativeProvider>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+              }}
+            >
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="(protected)"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="modal"
+                options={{ presentation: "modal", title: "Modal" }}
+              />
+            </Stack>
 
-        {/* <StatusBar */}
-        {/*   key={resolvedTheme} */}
-        {/*   style={isDark ? "light" : "dark"} */}
-        {/*   animated */}
-        {/* /> */}
-        <StatusBar style="auto" animated />
-      </SafeAreaProvider>
-    </QueryClientProvider>
+            <StatusBar animated />
+          </HeroUINativeProvider>
+        </SafeAreaProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }

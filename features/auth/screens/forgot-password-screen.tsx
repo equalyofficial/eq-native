@@ -4,6 +4,7 @@ import { Text, View, Pressable } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
 import { isApiError } from "@/lib/api-error";
+import { useThemeColor } from "@/hooks/use-theme-color";
 
 import { useForgotPassword } from "../auth.hooks";
 import { ForgotPasswordSchema } from "../auth.schemas";
@@ -17,6 +18,7 @@ type ForgotPasswordErrors = {
 };
 
 export function ForgotPasswordScreen() {
+  const mutedColor = useThemeColor({}, "muted");
   const [phone, setPhone] = useState("");
   const [errors, setErrors] = useState<ForgotPasswordErrors>({});
   const [successMessage, setSuccessMessage] = useState("");
@@ -92,7 +94,7 @@ export function ForgotPasswordScreen() {
           autoComplete="tel"
           returnKeyType="send"
           error={errors.phone}
-          leftIcon={<Feather name="smartphone" size={18} color="#555" />}
+          leftIcon={<Feather name="smartphone" size={18} color={mutedColor} />}
         />
 
         {errors.form ? (

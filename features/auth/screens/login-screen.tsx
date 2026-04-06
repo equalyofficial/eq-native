@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Alert, Pressable, Text, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
 import { AuthScreenShell } from "@/features/auth/components/auth-screen-shell";
@@ -9,10 +9,34 @@ import { AuthPrimaryButton } from "@/features/auth/components/auth-primary-butto
 import { AuthDivider } from "@/features/auth/components/auth-divider";
 import { AuthSocialButton } from "@/features/auth/components/auth-social-button";
 import { AuthInlineLink } from "@/features/auth/components/auth-inline-link";
+import { useThemeColor } from "@/hooks/use-theme-color";
+import { LoginSchema } from "../auth.schemas";
 
 export default function LoginScreen() {
+  const mutedColor = useThemeColor({}, "muted");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<{ phone?: string; password?: string }>(
+    {},
+  );
+
+  function handleLogin() {
+    const result = LoginSchema.safeParse({ phone, password });
+
+    if (!result.success) {
+      const fieldErrors = result.error.flatten().fieldErrors;
+      const newErrors = {
+        phone: fieldErrors.phone?.[0],
+        password: fieldErrors.password?.[0],
+      };
+      setErrors(newErrors);
+
+      return;
+    }
+
+    setErrors({});
+    router.replace("/(protected)/(tabs)");
+  }
 
   return (
     <AuthScreenShell
@@ -24,7 +48,6 @@ export default function LoginScreen() {
         </Text>
       }
       description="The premium ledger for modern collective living."
-      // bottomLabel="Simplicity is the ultimate sophistication."
       footer={
         <AuthInlineLink
           prompt="Don't have an account?"
@@ -35,23 +58,33 @@ export default function LoginScreen() {
     >
       <View className="gap-6">
         <AuthTextField
-          label="Phone Number"
+          label="Phone Number *"
           placeholder="+91 98765 43210"
           value={phone}
-          onChangeText={setPhone}
+          onChangeText={(text) => {
+            setPhone(text);
+            if (errors.phone)
+              setErrors((prev) => ({ ...prev, phone: undefined }));
+          }}
           keyboardType="phone-pad"
           textContentType="telephoneNumber"
           autoComplete="tel"
-          rightIcon={<Feather name="smartphone" size={18} color="#555" />}
+          error={errors.phone}
+          rightIcon={<Feather name="smartphone" size={18} color={mutedColor} />}
         />
 
         <AuthTextField
-          label="Password"
+          label="Password *"
           placeholder="••••••••"
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(text) => {
+            setPassword(text);
+            if (errors.password)
+              setErrors((prev) => ({ ...prev, password: undefined }));
+          }}
           secureTextEntry
           textContentType="password"
+          error={errors.password}
           labelRight={
             <Pressable onPress={() => router.push("/forgot-password")}>
               <Text className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
@@ -61,10 +94,7 @@ export default function LoginScreen() {
           }
         />
 
-        <AuthPrimaryButton
-          label="Login"
-          onPress={() => console.log("Logging in...")}
-        />
+        <AuthPrimaryButton label="Login" onPress={handleLogin} />
 
         <AuthDivider />
 

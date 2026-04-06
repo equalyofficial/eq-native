@@ -7,7 +7,8 @@ export function useEffectiveColorScheme(): 'light' | 'dark' {
   const { theme, hasAdaptiveThemes } = useUniwind();
 
   if (hasAdaptiveThemes) {
-    return systemColorScheme ?? 'light';
+    // systemColorScheme can be null briefly on Android new arch — fall back to theme
+    return (systemColorScheme ?? theme) === 'dark' ? 'dark' : 'light';
   }
 
   return theme === 'dark' ? 'dark' : 'light';

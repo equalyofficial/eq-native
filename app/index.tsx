@@ -7,7 +7,7 @@ export default function IndexScreen() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   if (isAuthenticated) {
-    return <Redirect href="/(tabs)" />;
+    return <Redirect href="/(protected)/(tabs)" />;
   }
 
   return <RegisterScreen />;

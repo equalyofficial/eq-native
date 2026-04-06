@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useEffectiveColorScheme } from "@/hooks/use-effective-color-scheme";
+import { useThemeColor } from "@/hooks/use-theme-color";
 
 type AuthTextFieldProps = {
   label: string;
@@ -51,7 +52,13 @@ export function AuthTextField({
   leftIcon,
 }: AuthTextFieldProps) {
   const [isSecure, setIsSecure] = useState(secureTextEntry);
+  const [isFocused, setIsFocused] = useState(false);
   const colorScheme = useEffectiveColorScheme();
+  const accentColor = useThemeColor({}, "accent");
+  const borderColor = useThemeColor({}, "border");
+  const mutedColor = useThemeColor({}, "muted");
+  const rightIconColor = error ? "#EF4444" : isFocused ? accentColor : mutedColor;
+  const fieldBorderColor = error ? "#EF4444" : isFocused ? accentColor : borderColor;
 
   return (
     <View className="gap-2">
@@ -63,10 +70,8 @@ export function AuthTextField({
       </View>
 
       <View
-        className={[
-          "min-h-14 flex-row items-center rounded-2xl bg-card px-4",
-          error ? "border border-red-500" : "border border-border",
-        ].join(" ")}
+        className="min-h-14 flex-row items-center rounded-2xl bg-card px-4"
+        style={{ borderWidth: 1, borderColor: fieldBorderColor }}
       >
         {leftIcon ? <View className="mr-3">{leftIcon}</View> : null}
 
@@ -81,6 +86,8 @@ export function AuthTextField({
           autoComplete={autoComplete}
           secureTextEntry={isSecure}
           returnKeyType={returnKeyType}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           keyboardAppearance={colorScheme === "dark" ? "dark" : "light"}
           className="flex-1 py-4 text-base font-sans text-foreground"
         />
@@ -93,11 +100,13 @@ export function AuthTextField({
             <Feather
               name={isSecure ? "eye-off" : "eye"}
               size={18}
-              color={colorScheme === "dark" ? "#6b6b6b" : "#8e8e8e"}
+              color={rightIconColor}
             />
           </Pressable>
         ) : rightIcon ? (
-          <View className="pl-3">{rightIcon}</View>
+          <View className="pl-3" style={{ opacity: isFocused ? 1 : 0.9 }}>
+            {rightIcon}
+          </View>
         ) : null}
       </View>
 
