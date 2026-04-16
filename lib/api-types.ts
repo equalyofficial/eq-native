@@ -20,7 +20,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/register": {
+    "/auth/register/initiate": {
         parameters: {
             query?: never;
             header?: never;
@@ -30,10 +30,30 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Register
-         * @description Register with phone, name, and password.
+         * Initiate Registration
+         * @description Start registration by sending OTP to email.
          */
-        post: operations["postAuthRegister"];
+        post: operations["postAuthRegisterInitiate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/register/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify Registration OTP
+         * @description Complete registration using challenge_id and OTP.
+         */
+        post: operations["postAuthRegisterVerify"];
         delete?: never;
         options?: never;
         head?: never;
@@ -60,6 +80,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/login/otp/initiate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Initiate OTP Login
+         * @description Send OTP to email for login.
+         */
+        post: operations["postAuthLoginOtpInitiate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/login/otp/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify OTP Login
+         * @description Verify OTP challenge and login.
+         */
+        post: operations["postAuthLoginOtpVerify"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/otp/resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resend OTP
+         * @description Resend OTP for an existing challenge.
+         */
+        post: operations["postAuthOtpResend"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/forgot-password": {
         parameters: {
             query?: never;
@@ -71,7 +151,7 @@ export interface paths {
         put?: never;
         /**
          * Forgot Password
-         * @description Request a password reset code.
+         * @description Request a password reset token via phone or email.
          */
         post: operations["postAuthForgot-password"];
         delete?: never;
@@ -403,23 +483,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/groups/join/{token}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Join group via invite token */
-        get: operations["getGroupsJoinByToken"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/groups/{id}": {
         parameters: {
             query?: never;
@@ -437,6 +500,23 @@ export interface paths {
         head?: never;
         /** Update group info */
         patch: operations["patchGroupsById"];
+        trace?: never;
+    };
+    "/groups/join/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Join group via invite token */
+        get: operations["getGroupsJoinByToken"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/groups/{id}/members": {
@@ -592,6 +672,40 @@ export interface paths {
         patch: operations["patchNotificationsByIdRead"];
         trace?: never;
     };
+    "/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get global activity feed for the current user */
+        get: operations["getActivity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/groups/{id}/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get activity feed for a specific group */
+        get: operations["getGroupsByIdActivity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/groups/{id}/expenses": {
         parameters: {
             query?: never;
@@ -698,6 +812,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/settlements/{id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark settlement as completed */
+        post: operations["postSettlementsByIdComplete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settlements/{id}/dispute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dispute a settlement */
+        post: operations["postSettlementsByIdDispute"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settlements/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a settlement */
+        post: operations["postSettlementsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/settlements/{id}": {
         parameters: {
             query?: never;
@@ -737,7 +902,7 @@ export interface operations {
         requestBody?: never;
         responses: never;
     };
-    postAuthRegister: {
+    postAuthRegisterInitiate: {
         parameters: {
             query?: never;
             header?: never;
@@ -747,17 +912,20 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    phone: string;
+                    /** Format: email */
+                    email: string;
                     password: string;
                     name: string;
                 };
                 "application/x-www-form-urlencoded": {
-                    phone: string;
+                    /** Format: email */
+                    email: string;
                     password: string;
                     name: string;
                 };
                 "multipart/form-data": {
-                    phone: string;
+                    /** Format: email */
+                    email: string;
                     password: string;
                     name: string;
                 };
@@ -774,17 +942,145 @@ export interface operations {
                         /** @constant */
                         success: true;
                         data: {
+                            challenge_id: string;
+                            expires_in_seconds: number;
+                            message: string;
+                        };
+                        message: string;
+                    };
+                };
+            };
+            /** @description Response for status 409 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: {
+                            code: string;
+                            message: string;
+                            details?: {
+                                field: string;
+                                message: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Response for status 422 */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: {
+                            code: string;
+                            message: string;
+                            details?: {
+                                field: string;
+                                message: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    postAuthRegisterVerify: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    challenge_id: string;
+                    otp: string;
+                };
+                "application/x-www-form-urlencoded": {
+                    /** Format: uuid */
+                    challenge_id: string;
+                    otp: string;
+                };
+                "multipart/form-data": {
+                    /** Format: uuid */
+                    challenge_id: string;
+                    otp: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                        data: {
                             access_token: string;
                             refresh_token: string;
                             is_new_user: boolean;
                             user: {
                                 id: string;
+                                email: (string | null) | null;
                                 phone: (string | null) | null;
                                 name: string;
                                 avatar_url: (string | null) | null;
                             };
                         };
                         message: string;
+                    };
+                };
+            };
+            /** @description Response for status 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: {
+                            code: string;
+                            message: string;
+                            details?: {
+                                field: string;
+                                message: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Response for status 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: {
+                            code: string;
+                            message: string;
+                            details?: {
+                                field: string;
+                                message: string;
+                            }[];
+                        };
                     };
                 };
             };
@@ -869,6 +1165,7 @@ export interface operations {
                             is_new_user: boolean;
                             user: {
                                 id: string;
+                                email: (string | null) | null;
                                 phone: (string | null) | null;
                                 name: string;
                                 avatar_url: (string | null) | null;
@@ -920,6 +1217,328 @@ export interface operations {
             };
         };
     };
+    postAuthLoginOtpInitiate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: email */
+                    email: string;
+                };
+                "application/x-www-form-urlencoded": {
+                    /** Format: email */
+                    email: string;
+                };
+                "multipart/form-data": {
+                    /** Format: email */
+                    email: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            challenge_id: string;
+                            expires_in_seconds: number;
+                            message: string;
+                        };
+                        message: string;
+                    };
+                };
+            };
+            /** @description Response for status 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: {
+                            code: string;
+                            message: string;
+                            details?: {
+                                field: string;
+                                message: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Response for status 422 */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: {
+                            code: string;
+                            message: string;
+                            details?: {
+                                field: string;
+                                message: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    postAuthLoginOtpVerify: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    challenge_id: string;
+                    otp: string;
+                };
+                "application/x-www-form-urlencoded": {
+                    /** Format: uuid */
+                    challenge_id: string;
+                    otp: string;
+                };
+                "multipart/form-data": {
+                    /** Format: uuid */
+                    challenge_id: string;
+                    otp: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            access_token: string;
+                            refresh_token: string;
+                            is_new_user: boolean;
+                            user: {
+                                id: string;
+                                email: (string | null) | null;
+                                phone: (string | null) | null;
+                                name: string;
+                                avatar_url: (string | null) | null;
+                            };
+                        };
+                        message: string;
+                    };
+                };
+            };
+            /** @description Response for status 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: {
+                            code: string;
+                            message: string;
+                            details?: {
+                                field: string;
+                                message: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Response for status 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: {
+                            code: string;
+                            message: string;
+                            details?: {
+                                field: string;
+                                message: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Response for status 422 */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: {
+                            code: string;
+                            message: string;
+                            details?: {
+                                field: string;
+                                message: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    postAuthOtpResend: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    challenge_id: string;
+                };
+                "application/x-www-form-urlencoded": {
+                    /** Format: uuid */
+                    challenge_id: string;
+                };
+                "multipart/form-data": {
+                    /** Format: uuid */
+                    challenge_id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            challenge_id: string;
+                            expires_in_seconds: number;
+                            message: string;
+                        };
+                        message: string;
+                    };
+                };
+            };
+            /** @description Response for status 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: {
+                            code: string;
+                            message: string;
+                            details?: {
+                                field: string;
+                                message: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Response for status 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: {
+                            code: string;
+                            message: string;
+                            details?: {
+                                field: string;
+                                message: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Response for status 422 */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: {
+                            code: string;
+                            message: string;
+                            details?: {
+                                field: string;
+                                message: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Response for status 429 */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: {
+                            code: string;
+                            message: string;
+                            details?: {
+                                field: string;
+                                message: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+    };
     "postAuthForgot-password": {
         parameters: {
             query?: never;
@@ -931,12 +1550,21 @@ export interface operations {
             content: {
                 "application/json": {
                     phone: string;
+                } | {
+                    /** Format: email */
+                    email: string;
                 };
                 "application/x-www-form-urlencoded": {
                     phone: string;
+                } | {
+                    /** Format: email */
+                    email: string;
                 };
                 "multipart/form-data": {
                     phone: string;
+                } | {
+                    /** Format: email */
+                    email: string;
                 };
             };
         };
@@ -952,6 +1580,7 @@ export interface operations {
                         success: true;
                         data: {
                             message: string;
+                            dev_token: (string | null) | null;
                         };
                         message: string;
                     };
@@ -1077,6 +1706,7 @@ export interface operations {
                             is_new_user: boolean;
                             user: {
                                 id: string;
+                                email: (string | null) | null;
                                 phone: (string | null) | null;
                                 name: string;
                                 avatar_url: (string | null) | null;
@@ -1147,6 +1777,7 @@ export interface operations {
                             is_new_user: boolean;
                             user: {
                                 id: string;
+                                email: (string | null) | null;
                                 phone: (string | null) | null;
                                 name: string;
                                 avatar_url: (string | null) | null;
@@ -1217,6 +1848,7 @@ export interface operations {
                             is_new_user: boolean;
                             user: {
                                 id: string;
+                                email: (string | null) | null;
                                 phone: (string | null) | null;
                                 name: string;
                                 avatar_url: (string | null) | null;
@@ -1929,35 +2561,6 @@ export interface operations {
         };
         responses: never;
     };
-    getGroupsJoinByToken: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                token: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Response for status 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @constant */
-                        success: true;
-                        data: {
-                            message: string;
-                        };
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
     getGroupsById: {
         parameters: {
             query?: never;
@@ -2066,6 +2669,35 @@ export interface operations {
             };
         };
         responses: never;
+    };
+    getGroupsJoinByToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            message: string;
+                        };
+                        message: string;
+                    };
+                };
+            };
+        };
     };
     postGroupsByIdMembers: {
         parameters: {
@@ -2376,6 +3008,104 @@ export interface operations {
             };
         };
     };
+    getActivity: {
+        parameters: {
+            query?: {
+                page?: string;
+                limit?: string;
+                type?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            id: string;
+                            type: string;
+                            groupId: (string | null) | null;
+                            expenseId: (string | null) | null;
+                            settlementId: (string | null) | null;
+                            targetUserId: (string | null) | null;
+                            metadata: unknown;
+                            createdAt: string;
+                            actor: {
+                                id: string;
+                                name: string;
+                                avatarUrl: (string | null) | null;
+                            };
+                        }[];
+                        pagination: {
+                            page: number;
+                            limit: number;
+                            total: number;
+                            hasMore: boolean;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    getGroupsByIdActivity: {
+        parameters: {
+            query?: {
+                page?: string;
+                limit?: string;
+                type?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Response for status 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            id: string;
+                            type: string;
+                            groupId: (string | null) | null;
+                            expenseId: (string | null) | null;
+                            settlementId: (string | null) | null;
+                            targetUserId: (string | null) | null;
+                            metadata: unknown;
+                            createdAt: string;
+                            actor: {
+                                id: string;
+                                name: string;
+                                avatarUrl: (string | null) | null;
+                            };
+                        }[];
+                        pagination: {
+                            page: number;
+                            limit: number;
+                            total: number;
+                            hasMore: boolean;
+                        };
+                    };
+                };
+            };
+        };
+    };
     getGroupsByIdExpenses: {
         parameters: {
             query?: {
@@ -2450,7 +3180,7 @@ export interface operations {
                     date: string;
                     paidBy?: string;
                     /** @enum {string} */
-                    category?: "food" | "travel" | "utilities" | "entertainment" | "shopping" | "health" | "accommodation" | "other";
+                    category?: "shopping" | "groceries" | "food_and_dining" | "transport" | "bills_and_recharges" | "transfers" | "medical" | "travel" | "repayments" | "personal" | "services" | "insurance" | "entertainment" | "gaming" | "small_shops" | "rent" | "logistics" | "subscription" | "investment" | "fitness" | "pet" | "miscellaneous";
                     splits?: {
                         userId: string;
                         amount?: number;
@@ -2473,7 +3203,7 @@ export interface operations {
                     date: string;
                     paidBy?: string;
                     /** @enum {string} */
-                    category?: "food" | "travel" | "utilities" | "entertainment" | "shopping" | "health" | "accommodation" | "other";
+                    category?: "shopping" | "groceries" | "food_and_dining" | "transport" | "bills_and_recharges" | "transfers" | "medical" | "travel" | "repayments" | "personal" | "services" | "insurance" | "entertainment" | "gaming" | "small_shops" | "rent" | "logistics" | "subscription" | "investment" | "fitness" | "pet" | "miscellaneous";
                     splits?: {
                         userId: string;
                         amount?: number;
@@ -2496,7 +3226,7 @@ export interface operations {
                     date: string;
                     paidBy?: string;
                     /** @enum {string} */
-                    category?: "food" | "travel" | "utilities" | "entertainment" | "shopping" | "health" | "accommodation" | "other";
+                    category?: "shopping" | "groceries" | "food_and_dining" | "transport" | "bills_and_recharges" | "transfers" | "medical" | "travel" | "repayments" | "personal" | "services" | "insurance" | "entertainment" | "gaming" | "small_shops" | "rent" | "logistics" | "subscription" | "investment" | "fitness" | "pet" | "miscellaneous";
                     splits?: {
                         userId: string;
                         amount?: number;
@@ -2780,22 +3510,73 @@ export interface operations {
                     toUserId: string;
                     amount: number;
                     upiRef?: string;
+                    upiDeepLink?: string;
                     note?: string;
                 };
                 "application/x-www-form-urlencoded": {
                     toUserId: string;
                     amount: number;
                     upiRef?: string;
+                    upiDeepLink?: string;
                     note?: string;
                 };
                 "multipart/form-data": {
                     toUserId: string;
                     amount: number;
                     upiRef?: string;
+                    upiDeepLink?: string;
                     note?: string;
                 };
             };
         };
+        responses: never;
+    };
+    postSettlementsByIdComplete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: never;
+    };
+    postSettlementsByIdDispute: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                };
+                "application/x-www-form-urlencoded": {
+                    reason: string;
+                };
+                "multipart/form-data": {
+                    reason: string;
+                };
+            };
+        };
+        responses: never;
+    };
+    postSettlementsByIdCancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: never;
     };
     deleteSettlementsById: {

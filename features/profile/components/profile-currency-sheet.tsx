@@ -10,7 +10,7 @@ import {
 import { Keyboard, Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useEffectiveColorScheme } from "@/hooks/use-effective-color-scheme";
-import { useThemeColor } from "@/hooks/use-theme-color";
+import { useCSSVariable } from "uniwind";
 import { demoCurrencies, type DemoCurrency } from "../profile.data";
 
 type ProfileCurrencySheetProps = {
@@ -29,10 +29,11 @@ function CurrencyField({
 }) {
   const { onFocus, onBlur } = useBottomSheetAwareHandlers();
   const colorScheme = useEffectiveColorScheme();
+  const mutedColor = useCSSVariable("--color-muted");
 
   return (
     <View className="flex-row items-center rounded-2xl border border-border bg-background px-4">
-      <Feather name="search" size={18} color="#71717A" />
+      <Feather name="search" size={18} color={String(mutedColor)} />
       <TextInput
         placeholder="Enter currency code or symbol"
         value={value}
@@ -71,7 +72,7 @@ export function ProfileCurrencySheet({
   const [searchValue, setSearchValue] = useState("");
   const [showError, setShowError] = useState(false);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-  const mutedColor = useThemeColor({}, "muted");
+  const mutedColor = useCSSVariable("--color-muted") as string;
   const snapPoints = useMemo(
     () => (isKeyboardVisible ? ["90%"] : ["60%", "90%"]),
     [isKeyboardVisible],
@@ -223,16 +224,18 @@ export function ProfileCurrencySheet({
                         </View>
                       </View>
 
-                      <View className="items-end gap-1">
-                        <Text className="text-sm font-semibold text-foreground">
-                          {currency.symbol}
-                        </Text>
-                        <Feather
-                          name={selected ? "check" : "arrow-up-right"}
-                          size={15}
-                          color={selected ? mutedColor : "#71717A"}
-                        />
-                      </View>
+                       <View className="items-end gap-1">
+                         <Text className="text-sm font-semibold text-foreground">
+                           {currency.symbol}
+                         </Text>
+                         <Feather
+                           name={selected ? "check" : "arrow-up-right"}
+                           size={15}
+                           color={String(mutedColor)}
+                         />
+                       </View>
+
+
                     </Pressable>
                   );
                 })}

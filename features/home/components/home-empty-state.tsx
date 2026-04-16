@@ -23,14 +23,15 @@ export function HomeEmptyState({
           {description}
         </Text>
 
-        {actionLabel && onPress ? (
-          <Pressable
-            onPress={onPress}
-            className="mt-6 h-12 min-w-48 items-center justify-center rounded-full bg-linear-to-r from-zinc-100 to-[#7C7EFF] px-6"
-          >
-            <Text className="text-base font-bold text-white">{actionLabel}</Text>
-          </Pressable>
-        ) : null}
+         {actionLabel && onPress ? (
+           <Pressable
+             onPress={onPress}
+             className="mt-6 h-12 min-w-48 items-center justify-center rounded-full bg-linear-to-r from-zinc-100 to-brand-accent px-6"
+           >
+             <Text className="text-base font-bold text-white">{actionLabel}</Text>
+           </Pressable>
+         ) : null}
+
       </View>
     </View>
   );

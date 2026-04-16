@@ -1,6 +1,7 @@
+import React, { memo } from "react";
 import { Feather } from "@expo/vector-icons";
 import { Pressable, Switch, Text, View } from "react-native";
-import { useThemeColor } from "@/hooks/use-theme-color";
+import { useCSSVariable } from "uniwind";
 
 type ProfileSettingRowProps = {
   icon: React.ComponentProps<typeof Feather>["name"];
@@ -16,7 +17,7 @@ type ProfileSettingRowProps = {
   rightSlot?: React.ReactNode;
 };
 
-export function ProfileSettingRow({
+export const ProfileSettingRow = memo(function ProfileSettingRow({
   icon,
   label,
   value,
@@ -26,11 +27,23 @@ export function ProfileSettingRow({
   toggle,
   rightSlot,
 }: ProfileSettingRowProps) {
-  const mutedColor = useThemeColor({}, "muted");
-  const borderColor = useThemeColor({}, "border");
-  const accentColor = useThemeColor({}, "accent");
+  const [muted, border, accent, danger, background] = useCSSVariable([
+    "--color-muted",
+    "--color-border",
+    "--color-accent",
+    "--color-danger",
+    "--color-background",
+  ]);
+  
+  const mutedColor = muted as string;
+  const borderColor = border as string;
+  const accentColor = accent as string;
+  const dangerColor = danger as string;
+  const bgColor = background as string;
+  
   const labelClassName =
     variant === "destructive" ? "text-red-500" : "text-foreground";
+
 
   const content = (
     <View
@@ -49,7 +62,7 @@ export function ProfileSettingRow({
           <Feather
             name={icon}
             size={18}
-            color={variant === "destructive" ? "#EF4444" : mutedColor}
+            color={variant === "destructive" ? dangerColor : mutedColor}
           />
         </View>
 
@@ -57,22 +70,24 @@ export function ProfileSettingRow({
       </View>
 
       {toggle ? (
-        <Switch
-          value={toggle.value}
-          onValueChange={toggle.onValueChange}
-          trackColor={{ false: borderColor, true: accentColor }}
-          thumbColor="#FFFFFF"
-        />
+         <Switch
+           value={toggle.value}
+           onValueChange={toggle.onValueChange}
+           trackColor={{ false: borderColor, true: accentColor }}
+           thumbColor={bgColor}
+         />
+
       ) : rightSlot ? (
         rightSlot
       ) : (
         <View className="flex-row items-center gap-2">
           {value ? <Text className="text-sm font-medium text-muted">{value}</Text> : null}
-          <Feather
-            name="chevron-right"
-            size={18}
-            color={variant === "destructive" ? "#EF4444" : mutedColor}
-          />
+           <Feather
+             name="chevron-right"
+             size={18}
+             color={variant === "destructive" ? dangerColor : mutedColor}
+           />
+
         </View>
       )}
     </View>
@@ -83,4 +98,4 @@ export function ProfileSettingRow({
   }
 
   return content;
-}
+});

@@ -13,8 +13,8 @@ import { homeState, homeSummary, recentActivity } from "../home.data";
 export default function HomeScreen() {
   if (!homeState.hasGroups) {
     return (
-      <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
-        <View className="flex-1 bg-background">
+      <View className="flex-1 bg-background">
+        <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "transparent" }}>
           <HomeHeader />
           <HomeEmptyState
             title="Add your first group to start splitting"
@@ -22,14 +22,14 @@ export default function HomeScreen() {
             actionLabel="Create Group"
             onPress={() => router.push("/groups")}
           />
-        </View>
-      </SafeAreaView>
+        </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
-      <View className="flex-1 bg-background">
+    <View className="flex-1 bg-background">
+      <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "transparent" }}>
         <HomeHeader />
         <NetBalanceCard />
         {/* <View className="px-5 pt-6"> */}
@@ -46,7 +46,7 @@ export default function HomeScreen() {
             description="Once your groups start adding expenses, the latest updates will appear here."
           />
         )}
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }

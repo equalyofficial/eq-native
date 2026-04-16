@@ -6,9 +6,12 @@ import {
   Platform,
   ScrollView,
   Text,
-  View
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { withUniwind } from "uniwind";
+
+const StyledSafeAreaView = withUniwind(SafeAreaView);
 
 type AuthScreenShellProps = PropsWithChildren<{
   title: ReactNode | string;
@@ -27,7 +30,7 @@ export function AuthScreenShell({
   children,
 }: AuthScreenShellProps) {
   return (
-    <SafeAreaView edges={["top", "bottom"]} style={{ flex: 1 }}>
+    <StyledSafeAreaView edges={["top", "bottom"]} style={{ flex: 1 }}>
       <View className="flex-1 bg-background">
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -42,7 +45,7 @@ export function AuthScreenShell({
             <View>
               <View
                 className={[
-                  "mb-10 gap-2",
+                   "mb-6 gap-2",
                   alignHeader === "center" ? "items-center" : "items-start",
                 ].join(" ")}
               >
@@ -86,6 +89,6 @@ export function AuthScreenShell({
           </ScrollView>
         </KeyboardAvoidingView>
       </View>
-    </SafeAreaView>
+    </StyledSafeAreaView>
   );
 }

@@ -14,7 +14,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
-import { Uniwind, useUniwind } from "uniwind";
+import { Uniwind, useUniwind, useCSSVariable } from "uniwind";
 import type { ProfileThemeOption } from "../profile.data";
 import { useEffectiveColorScheme } from "@/hooks/use-effective-color-scheme";
 
@@ -52,7 +52,6 @@ function ThemeOption({
   progress,
   selected,
   onPress,
-  isDark,
   segmentWidth,
 }: {
   index: number;
@@ -60,9 +59,13 @@ function ThemeOption({
   progress: SharedValue<number>;
   selected: boolean;
   onPress: () => void;
-  isDark: boolean;
   segmentWidth: number;
 }) {
+  const [foregroundColor, mutedColor] = useCSSVariable([
+    "--color-foreground",
+    "--color-muted",
+  ]);
+
   const animatedContainerStyle = useAnimatedStyle(() => {
     const distance = Math.abs(progress.value - index);
 
@@ -113,7 +116,7 @@ function ThemeOption({
           <Feather
             name={option.icon}
             size={16}
-            color={selected ? (isDark ? "#FFFFFF" : "#09090B") : "#71717A"}
+            color={selected ? (foregroundColor as string) : (mutedColor as string)}
           />
         </Animated.View>
 
@@ -233,12 +236,7 @@ export function ProfileThemeSelector() {
 
       <GestureDetector gesture={panGesture}>
         <View
-          className="mt-4 rounded-full p-1"
-          style={{
-            backgroundColor: isDark ? "#09090B" : "#F4F4F5",
-            borderWidth: 1,
-            borderColor: isDark ? "rgba(255,255,255,0.08)" : "#E4E4E7",
-          }}
+          className="mt-4 rounded-full p-1 bg-background border border-border"
           onLayout={(event) =>
             setContainerWidth(event.nativeEvent.layout.width - 8)
           }
@@ -268,7 +266,6 @@ export function ProfileThemeSelector() {
                 option={option}
                 progress={progress}
                 selected={activeTheme === option.value}
-                isDark={isDark}
                 segmentWidth={segmentWidth || 1}
                 onPress={() => handleThemePress(option.value)}
               />

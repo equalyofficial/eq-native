@@ -18,7 +18,7 @@ export function RecentActivitySection({
           Recent Activity
         </Text>
         <Pressable onPress={() => router.push('/activity')}>
-          <Text className="text-sm font-semibold uppercase tracking-[0.18em] text-[#D9CDB7]">
+          <Text className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-gold">
             View All
           </Text>
         </Pressable>

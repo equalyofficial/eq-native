@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -21,6 +21,24 @@ export default function ProfileScreen() {
   const [isLogoutSheetOpen, setIsLogoutSheetOpen] = useState(false);
   const [isCurrencySheetOpen, setIsCurrencySheetOpen] = useState(false);
 
+  const handleToggleNotifications = useCallback((value: boolean) => {
+    setNotificationsEnabled(value);
+  }, []);
+
+  const handleOpenCurrencySheet = useCallback(() => {
+    setIsCurrencySheetOpen(true);
+  }, []);
+
+  const handleOpenLogoutSheet = useCallback(() => {
+    setIsLogoutSheetOpen(true);
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    clearTokens();
+    setIsLogoutSheetOpen(false);
+    router.replace("/login");
+  }, [clearTokens]);
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View className="flex-1 bg-background">
@@ -34,9 +52,6 @@ export default function ProfileScreen() {
               <Text className="text-4xl font-bold tracking-tight text-foreground">
                 Profile
               </Text>
-              {/* <Text className="mt-2 text-base text-muted"> */}
-              {/*   Manage your account, preferences, and settlement details. */}
-              {/* </Text> */}
             </View>
 
             <ProfileIdentityCard user={profileUser} />
@@ -52,7 +67,7 @@ export default function ProfileScreen() {
                 separated
                 toggle={{
                   value: notificationsEnabled,
-                  onValueChange: setNotificationsEnabled,
+                  onValueChange: handleToggleNotifications,
                 }}
               />
 
@@ -61,7 +76,7 @@ export default function ProfileScreen() {
                 label="Preferred Currency"
                 value={preferredCurrency}
                 separated
-                onPress={() => setIsCurrencySheetOpen(true)}
+                onPress={handleOpenCurrencySheet}
               />
 
               <ProfileSettingRow
@@ -90,7 +105,7 @@ export default function ProfileScreen() {
                 label="Logout"
                 separated
                 variant="destructive"
-                onPress={() => setIsLogoutSheetOpen(true)}
+                onPress={handleOpenLogoutSheet}
               />
             </View>
           </View>
@@ -105,11 +120,7 @@ export default function ProfileScreen() {
         <ProfileLogoutSheet
           isOpen={isLogoutSheetOpen}
           onOpenChange={setIsLogoutSheetOpen}
-          onLogout={() => {
-            clearTokens();
-            setIsLogoutSheetOpen(false);
-            router.replace("/login");
-          }}
+          onLogout={handleLogout}
         />
       </View>
     </SafeAreaView>

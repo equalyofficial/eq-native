@@ -40,7 +40,7 @@ export function BalancePeopleRow() {
           People Balances
         </Text>
         <Pressable onPress={() => router.push('/friends')}>
-          <Text className="text-sm font-semibold uppercase tracking-[0.18em] text-[#D9CDB7]">
+          <Text className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-gold">
             See All
           </Text>
         </Pressable>

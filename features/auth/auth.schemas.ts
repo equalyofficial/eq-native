@@ -2,7 +2,7 @@ import { z } from "zod";
 import { PasswordSchema, PhoneSchema } from "@/lib/schemas";
 
 export const RegisterSchema = z.object({
-  phone: PhoneSchema,
+  email: z.string().email("Invalid email address"),
   password: PasswordSchema,
   name: z
     .string()
@@ -10,14 +10,29 @@ export const RegisterSchema = z.object({
     .max(100, "Name is too long"),
 });
 
-export const LoginSchema = z.object({
-  phone: PhoneSchema,
-  password: z.string().min(1, "Password is required"),
-});
+export const LoginSchema = z.union([
+  z.object({
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(1, "Password is required"),
+    mode: z.literal("email"),
+  }),
+  z.object({
+    phone: PhoneSchema,
+    password: z.string().min(1, "Password is required"),
+    mode: z.literal("phone"),
+  }),
+]);
 
-export const ForgotPasswordSchema = z.object({
-  phone: PhoneSchema,
-});
+export const ForgotPasswordSchema = z.union([
+  z.object({
+    phone: PhoneSchema,
+    mode: z.literal("phone"),
+  }),
+  z.object({
+    email: z.string().email("Invalid email address"),
+    mode: z.literal("email"),
+  }),
+]);
 
 export const ResetPasswordSchema = z
   .object({

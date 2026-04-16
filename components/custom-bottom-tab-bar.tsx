@@ -7,7 +7,7 @@ import { Platform, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { scheduleOnRN } from "react-native-worklets";
-import { useUniwind } from "uniwind";
+import { useUniwind, useCSSVariable } from "uniwind";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import Animated, {
   Extrapolation,
@@ -21,7 +21,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 
-type VisibleRouteName = "index" | "groups" | "pay" | "friends" | "activity";
+type VisibleRouteName = "index" | "groups" | "slice" | "friends" | "activity";
 const AnimatedFeather = Animated.createAnimatedComponent(Feather);
 
 const TAB_SPACING = 76;
@@ -40,7 +40,7 @@ const tabMeta: Record<
 > = {
   index: { iconName: "home", label: "Home" },
   groups: { iconName: "users", label: "Groups" },
-  pay: { iconName: "plus", label: "Pay" },
+  slice: { iconName: "plus", label: "Slice" },
   friends: { iconName: "user", label: "Friends" },
   activity: { iconName: "bell", label: "Activity" },
 };
@@ -55,8 +55,8 @@ function DraggableTabItem({
   iconName,
   onPress,
   isDark,
-  centerIconColor,
-  inactiveIconColor,
+  centerIconSV,
+  inactiveIconSV,
   inactiveBubbleColor,
 }: {
   itemIndex: number;
@@ -64,8 +64,8 @@ function DraggableTabItem({
   iconName: React.ComponentProps<typeof Feather>["name"];
   onPress: () => void;
   isDark: boolean;
-  centerIconColor: string;
-  inactiveIconColor: string;
+  centerIconSV: SharedValue<string>;
+  inactiveIconSV: SharedValue<string>;
   inactiveBubbleColor: string;
 }) {
   const animatedStyle = useAnimatedStyle(() => {
@@ -144,7 +144,7 @@ function DraggableTabItem({
       color: interpolateColor(
         absDistance,
         [0, 1.5],
-        [centerIconColor, inactiveIconColor],
+        [centerIconSV.value, inactiveIconSV.value],
       ),
     };
   });
@@ -182,6 +182,17 @@ export function CustomBottomTabBar({ state, navigation }: BottomTabBarProps) {
   const systemColorScheme = useColorScheme();
   const { theme, hasAdaptiveThemes } = useUniwind();
 
+  const bgColor = useCSSVariable("--color-background");
+  const fgColor = useCSSVariable("--color-foreground");
+
+  const fgColorSV = useSharedValue(String(fgColor));
+  const bgColorSV = useSharedValue(String(bgColor));
+
+  useEffect(() => {
+    fgColorSV.value = String(fgColor);
+    bgColorSV.value = String(bgColor);
+  }, [fgColor, bgColor]);
+
   const visibleRoutes = state.routes.filter(
     (
       route,
@@ -202,8 +213,7 @@ export function CustomBottomTabBar({ state, navigation }: BottomTabBarProps) {
   const lastHapticIndex = useSharedValue(activeVisibleIndex);
   const [displayedIndex, setDisplayedIndex] = useState(activeVisibleIndex);
   const currentRoute = state.routes[state.index];
-  const currentRouteIsVisibleTab =
-    currentRoute && currentRoute.name in tabMeta;
+  const currentRouteIsVisibleTab = currentRoute && currentRoute.name in tabMeta;
   const resolvedTheme =
     hasAdaptiveThemes && systemColorScheme
       ? systemColorScheme
@@ -211,6 +221,7 @@ export function CustomBottomTabBar({ state, navigation }: BottomTabBarProps) {
         ? "dark"
         : "light";
   const isDark = resolvedTheme === "dark";
+
   const activeRoute =
     visibleRoutes[displayedIndex] ?? visibleRoutes[activeVisibleIndex];
   const activeLabel = activeRoute ? tabMeta[activeRoute.name].label : "";
@@ -227,16 +238,16 @@ export function CustomBottomTabBar({ state, navigation }: BottomTabBarProps) {
         "rgba(255,255,255,0.9)",
         "rgba(255,255,255,0.96)",
       ] as const);
-  const centerButtonColor = "#FFFFFF";
-  const centerIconColor = "#09090B";
-  const inactiveIconColor = isDark ? "#FFFFFF" : "#09090B";
+  const centerButtonColor = String(fgColorSV.value);
+  const centerIconColor = String(bgColorSV.value);
+  const inactiveIconColor = String(fgColorSV.value);
   const inactiveBubbleColor = isDark
     ? "rgba(255,255,255,0.08)"
     : "rgba(9,9,11,0.08)";
   const centerHaloColor = isDark
     ? "rgba(255,255,255,0.12)"
     : "rgba(9,9,11,0.08)";
-  const labelColor = isDark ? "#FFFFFF" : "#09090B";
+  const labelColor = String(fgColorSV.value);
 
   useEffect(() => {
     focusPosition.value = withSpring(activeVisibleIndex, SPRING_CONFIG);
@@ -346,8 +357,8 @@ export function CustomBottomTabBar({ state, navigation }: BottomTabBarProps) {
                   focusPosition={focusPosition}
                   iconName={meta.iconName}
                   isDark={isDark}
-                  centerIconColor={centerIconColor}
-                  inactiveIconColor={inactiveIconColor}
+                  centerIconSV={bgColorSV}
+                  inactiveIconSV={fgColorSV}
                   inactiveBubbleColor={inactiveBubbleColor}
                   onPress={() => {
                     triggerSelectionHaptic();
@@ -358,14 +369,14 @@ export function CustomBottomTabBar({ state, navigation }: BottomTabBarProps) {
             })}
           </View>
 
-          <View className="items-center justify-center">
-            <Text
-              className="font-semibold text-xs mb-1 uppercase tracking-widest"
-              style={{ color: labelColor }}
-            >
-              {activeLabel}
-            </Text>
-          </View>
+          {/* <View className="items-center justify-center"> */}
+          {/*   <Text */}
+          {/*     className="font-semibold text-xs mb-1 uppercase tracking-widest" */}
+          {/*     style={{ color: labelColor }} */}
+          {/*   > */}
+          {/*     {activeLabel} */}
+          {/*   </Text> */}
+          {/* </View> */}
         </View>
       </GestureDetector>
     </View>

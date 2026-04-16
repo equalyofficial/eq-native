@@ -17,7 +17,7 @@
     },
     {
       "name": "OAuth",
-      "description": "Google & Apple Sign-In"
+      "description": "Google Sign-In"
     },
     {
       "name": "Token",
@@ -45,13 +45,13 @@
         "operationId": "getIndex"
       }
     },
-    "/auth/register": {
+    "/auth/register/initiate": {
       "post": {
         "tags": [
           "Auth"
         ],
-        "summary": "Register",
-        "description": "Register with phone, name, and password.",
+        "summary": "Initiate Registration",
+        "description": "Start registration by sending OTP to email.",
         "requestBody": {
           "required": true,
           "content": {
@@ -59,9 +59,10 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "phone": {
-                    "pattern": "^\\d{10}$",
-                    "error": "Invalid phone number format. Expected exactly 10 digits.",
+                  "email": {
+                    "format": "email",
+                    "maxLength": 255,
+                    "error": "Invalid email format.",
                     "type": "string"
                   },
                   "password": {
@@ -78,7 +79,7 @@
                   }
                 },
                 "required": [
-                  "phone",
+                  "email",
                   "password",
                   "name"
                 ]
@@ -88,9 +89,10 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "phone": {
-                    "pattern": "^\\d{10}$",
-                    "error": "Invalid phone number format. Expected exactly 10 digits.",
+                  "email": {
+                    "format": "email",
+                    "maxLength": 255,
+                    "error": "Invalid email format.",
                     "type": "string"
                   },
                   "password": {
@@ -107,7 +109,7 @@
                   }
                 },
                 "required": [
-                  "phone",
+                  "email",
                   "password",
                   "name"
                 ]
@@ -117,9 +119,10 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "phone": {
-                    "pattern": "^\\d{10}$",
-                    "error": "Invalid phone number format. Expected exactly 10 digits.",
+                  "email": {
+                    "format": "email",
+                    "maxLength": 255,
+                    "error": "Invalid email format.",
                     "type": "string"
                   },
                   "password": {
@@ -136,7 +139,7 @@
                   }
                 },
                 "required": [
-                  "phone",
+                  "email",
                   "password",
                   "name"
                 ]
@@ -159,60 +162,20 @@
                     "data": {
                       "type": "object",
                       "properties": {
-                        "access_token": {
+                        "challenge_id": {
                           "type": "string"
                         },
-                        "refresh_token": {
+                        "expires_in_seconds": {
+                          "type": "number"
+                        },
+                        "message": {
                           "type": "string"
-                        },
-                        "is_new_user": {
-                          "type": "boolean"
-                        },
-                        "user": {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "string"
-                            },
-                            "phone": {
-                              "nullable": true,
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "name": {
-                              "type": "string"
-                            },
-                            "avatar_url": {
-                              "nullable": true,
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            }
-                          },
-                          "required": [
-                            "id",
-                            "phone",
-                            "name",
-                            "avatar_url"
-                          ]
                         }
                       },
                       "required": [
-                        "access_token",
-                        "refresh_token",
-                        "is_new_user",
-                        "user"
+                        "challenge_id",
+                        "expires_in_seconds",
+                        "message"
                       ]
                     },
                     "message": {
@@ -335,7 +298,400 @@
             }
           }
         },
-        "operationId": "postAuthRegister"
+        "operationId": "postAuthRegisterInitiate"
+      }
+    },
+    "/auth/register/verify": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Verify Registration OTP",
+        "description": "Complete registration using challenge_id and OTP.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "challenge_id": {
+                    "format": "uuid",
+                    "error": "Valid challenge_id is required",
+                    "type": "string"
+                  },
+                  "otp": {
+                    "minLength": 6,
+                    "maxLength": 6,
+                    "pattern": "^\\d{6}$",
+                    "error": "OTP must be exactly 6 digits",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "challenge_id",
+                  "otp"
+                ]
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "challenge_id": {
+                    "format": "uuid",
+                    "error": "Valid challenge_id is required",
+                    "type": "string"
+                  },
+                  "otp": {
+                    "minLength": 6,
+                    "maxLength": 6,
+                    "pattern": "^\\d{6}$",
+                    "error": "OTP must be exactly 6 digits",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "challenge_id",
+                  "otp"
+                ]
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "challenge_id": {
+                    "format": "uuid",
+                    "error": "Valid challenge_id is required",
+                    "type": "string"
+                  },
+                  "otp": {
+                    "minLength": 6,
+                    "maxLength": 6,
+                    "pattern": "^\\d{6}$",
+                    "error": "OTP must be exactly 6 digits",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "challenge_id",
+                  "otp"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true,
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "access_token": {
+                          "type": "string"
+                        },
+                        "refresh_token": {
+                          "type": "string"
+                        },
+                        "is_new_user": {
+                          "type": "boolean"
+                        },
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "nullable": true,
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "phone": {
+                              "nullable": true,
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "avatar_url": {
+                              "nullable": true,
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "email",
+                            "phone",
+                            "name",
+                            "avatar_url"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "access_token",
+                        "refresh_token",
+                        "is_new_user",
+                        "user"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Response for status 400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": false,
+                      "type": "boolean"
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "message"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Response for status 401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": false,
+                      "type": "boolean"
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "message"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Response for status 409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": false,
+                      "type": "boolean"
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "message"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Response for status 422",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": false,
+                      "type": "boolean"
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "message"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "operationId": "postAuthRegisterVerify"
       }
     },
     "/auth/login": {
@@ -446,6 +802,17 @@
                             "id": {
                               "type": "string"
                             },
+                            "email": {
+                              "nullable": true,
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
                             "phone": {
                               "nullable": true,
                               "anyOf": [
@@ -474,6 +841,7 @@
                           },
                           "required": [
                             "id",
+                            "email",
                             "phone",
                             "name",
                             "avatar_url"
@@ -610,13 +978,13 @@
         "operationId": "postAuthLogin"
       }
     },
-    "/auth/forgot-password": {
+    "/auth/login/otp/initiate": {
       "post": {
         "tags": [
           "Auth"
         ],
-        "summary": "Forgot Password",
-        "description": "Request a password reset code.",
+        "summary": "Initiate OTP Login",
+        "description": "Send OTP to email for login.",
         "requestBody": {
           "required": true,
           "content": {
@@ -624,14 +992,15 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "phone": {
-                    "pattern": "^\\d{10}$",
-                    "error": "Invalid phone number format. Expected exactly 10 digits.",
+                  "email": {
+                    "format": "email",
+                    "maxLength": 255,
+                    "error": "Invalid email format.",
                     "type": "string"
                   }
                 },
                 "required": [
-                  "phone"
+                  "email"
                 ]
               }
             },
@@ -639,14 +1008,15 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "phone": {
-                    "pattern": "^\\d{10}$",
-                    "error": "Invalid phone number format. Expected exactly 10 digits.",
+                  "email": {
+                    "format": "email",
+                    "maxLength": 255,
+                    "error": "Invalid email format.",
                     "type": "string"
                   }
                 },
                 "required": [
-                  "phone"
+                  "email"
                 ]
               }
             },
@@ -654,14 +1024,937 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "phone": {
-                    "pattern": "^\\d{10}$",
-                    "error": "Invalid phone number format. Expected exactly 10 digits.",
+                  "email": {
+                    "format": "email",
+                    "maxLength": 255,
+                    "error": "Invalid email format.",
                     "type": "string"
                   }
                 },
                 "required": [
-                  "phone"
+                  "email"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true,
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "challenge_id": {
+                          "type": "string"
+                        },
+                        "expires_in_seconds": {
+                          "type": "number"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "challenge_id",
+                        "expires_in_seconds",
+                        "message"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Response for status 404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": false,
+                      "type": "boolean"
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "message"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Response for status 422",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": false,
+                      "type": "boolean"
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "message"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "operationId": "postAuthLoginOtpInitiate"
+      }
+    },
+    "/auth/login/otp/verify": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Verify OTP Login",
+        "description": "Verify OTP challenge and login.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "challenge_id": {
+                    "format": "uuid",
+                    "error": "Valid challenge_id is required",
+                    "type": "string"
+                  },
+                  "otp": {
+                    "minLength": 6,
+                    "maxLength": 6,
+                    "pattern": "^\\d{6}$",
+                    "error": "OTP must be exactly 6 digits",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "challenge_id",
+                  "otp"
+                ]
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "challenge_id": {
+                    "format": "uuid",
+                    "error": "Valid challenge_id is required",
+                    "type": "string"
+                  },
+                  "otp": {
+                    "minLength": 6,
+                    "maxLength": 6,
+                    "pattern": "^\\d{6}$",
+                    "error": "OTP must be exactly 6 digits",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "challenge_id",
+                  "otp"
+                ]
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "challenge_id": {
+                    "format": "uuid",
+                    "error": "Valid challenge_id is required",
+                    "type": "string"
+                  },
+                  "otp": {
+                    "minLength": 6,
+                    "maxLength": 6,
+                    "pattern": "^\\d{6}$",
+                    "error": "OTP must be exactly 6 digits",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "challenge_id",
+                  "otp"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true,
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "access_token": {
+                          "type": "string"
+                        },
+                        "refresh_token": {
+                          "type": "string"
+                        },
+                        "is_new_user": {
+                          "type": "boolean"
+                        },
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "nullable": true,
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "phone": {
+                              "nullable": true,
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "avatar_url": {
+                              "nullable": true,
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "email",
+                            "phone",
+                            "name",
+                            "avatar_url"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "access_token",
+                        "refresh_token",
+                        "is_new_user",
+                        "user"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Response for status 400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": false,
+                      "type": "boolean"
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "message"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Response for status 401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": false,
+                      "type": "boolean"
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "message"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Response for status 422",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": false,
+                      "type": "boolean"
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "message"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "operationId": "postAuthLoginOtpVerify"
+      }
+    },
+    "/auth/otp/resend": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Resend OTP",
+        "description": "Resend OTP for an existing challenge.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "challenge_id": {
+                    "format": "uuid",
+                    "error": "Valid challenge_id is required",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "challenge_id"
+                ]
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "challenge_id": {
+                    "format": "uuid",
+                    "error": "Valid challenge_id is required",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "challenge_id"
+                ]
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "challenge_id": {
+                    "format": "uuid",
+                    "error": "Valid challenge_id is required",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "challenge_id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true,
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "challenge_id": {
+                          "type": "string"
+                        },
+                        "expires_in_seconds": {
+                          "type": "number"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "challenge_id",
+                        "expires_in_seconds",
+                        "message"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Response for status 400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": false,
+                      "type": "boolean"
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "message"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Response for status 404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": false,
+                      "type": "boolean"
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "message"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Response for status 422",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": false,
+                      "type": "boolean"
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "message"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Response for status 429",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": false,
+                      "type": "boolean"
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "message"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "operationId": "postAuthOtpResend"
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Forgot Password",
+        "description": "Request a password reset token via phone or email.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "phone": {
+                        "pattern": "^\\d{10}$",
+                        "error": "Invalid phone number format. Expected exactly 10 digits.",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "phone"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "format": "email",
+                        "maxLength": 255,
+                        "error": "Invalid email format.",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "email"
+                    ]
+                  }
+                ]
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "phone": {
+                        "pattern": "^\\d{10}$",
+                        "error": "Invalid phone number format. Expected exactly 10 digits.",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "phone"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "format": "email",
+                        "maxLength": 255,
+                        "error": "Invalid email format.",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "email"
+                    ]
+                  }
+                ]
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "phone": {
+                        "pattern": "^\\d{10}$",
+                        "error": "Invalid phone number format. Expected exactly 10 digits.",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "phone"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "format": "email",
+                        "maxLength": 255,
+                        "error": "Invalid email format.",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "email"
+                    ]
+                  }
                 ]
               }
             }
@@ -684,10 +1977,22 @@
                       "properties": {
                         "message": {
                           "type": "string"
+                        },
+                        "dev_token": {
+                          "nullable": true,
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         }
                       },
                       "required": [
-                        "message"
+                        "message",
+                        "dev_token"
                       ]
                     },
                     "message": {
@@ -1019,6 +2324,17 @@
                             "id": {
                               "type": "string"
                             },
+                            "email": {
+                              "nullable": true,
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
                             "phone": {
                               "nullable": true,
                               "anyOf": [
@@ -1047,6 +2363,7 @@
                           },
                           "required": [
                             "id",
+                            "email",
                             "phone",
                             "name",
                             "avatar_url"
@@ -1227,6 +2544,17 @@
                             "id": {
                               "type": "string"
                             },
+                            "email": {
+                              "nullable": true,
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
                             "phone": {
                               "nullable": true,
                               "anyOf": [
@@ -1255,6 +2583,7 @@
                           },
                           "required": [
                             "id",
+                            "email",
                             "phone",
                             "name",
                             "avatar_url"
@@ -1435,6 +2764,17 @@
                             "id": {
                               "type": "string"
                             },
+                            "email": {
+                              "nullable": true,
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
                             "phone": {
                               "nullable": true,
                               "anyOf": [
@@ -1463,6 +2803,7 @@
                           },
                           "required": [
                             "id",
+                            "email",
                             "phone",
                             "name",
                             "avatar_url"
@@ -3619,62 +4960,6 @@
         "operationId": "getGroups"
       }
     },
-    "/groups/join/{token}": {
-      "get": {
-        "tags": [
-          "Groups"
-        ],
-        "summary": "Join group via invite token",
-        "parameters": [
-          {
-            "name": "token",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Response for status 200",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "const": true,
-                      "type": "boolean"
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "message": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "message"
-                      ]
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "data",
-                    "message"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "operationId": "getGroupsJoinByToken"
-      }
-    },
     "/groups/{id}": {
       "get": {
         "tags": [
@@ -3985,6 +5270,62 @@
           }
         },
         "operationId": "deleteGroupsById"
+      }
+    },
+    "/groups/join/{token}": {
+      "get": {
+        "tags": [
+          "Groups"
+        ],
+        "summary": "Join group via invite token",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true,
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getGroupsJoinByToken"
       }
     },
     "/groups/{id}/members": {
@@ -4732,6 +6073,381 @@
         "operationId": "patchNotificationsByIdRead"
       }
     },
+    "/activity": {
+      "get": {
+        "tags": [
+          "Activity"
+        ],
+        "summary": "Get global activity feed for the current user",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": "1",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": "20",
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true,
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string"
+                          },
+                          "groupId": {
+                            "nullable": true,
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "expenseId": {
+                            "nullable": true,
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "settlementId": {
+                            "nullable": true,
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "targetUserId": {
+                            "nullable": true,
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "metadata": {},
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "actor": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "avatarUrl": {
+                                "nullable": true,
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "avatarUrl"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "type",
+                          "groupId",
+                          "expenseId",
+                          "settlementId",
+                          "targetUserId",
+                          "metadata",
+                          "createdAt",
+                          "actor"
+                        ]
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "number"
+                        },
+                        "limit": {
+                          "type": "number"
+                        },
+                        "total": {
+                          "type": "number"
+                        },
+                        "hasMore": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "page",
+                        "limit",
+                        "total",
+                        "hasMore"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data",
+                    "pagination"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getActivity"
+      }
+    },
+    "/groups/{id}/activity": {
+      "get": {
+        "tags": [
+          "Activity"
+        ],
+        "summary": "Get activity feed for a specific group",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "error": "Group id is required",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": "1",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": "20",
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true,
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string"
+                          },
+                          "groupId": {
+                            "nullable": true,
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "expenseId": {
+                            "nullable": true,
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "settlementId": {
+                            "nullable": true,
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "targetUserId": {
+                            "nullable": true,
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "metadata": {},
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "actor": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "avatarUrl": {
+                                "nullable": true,
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "avatarUrl"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "type",
+                          "groupId",
+                          "expenseId",
+                          "settlementId",
+                          "targetUserId",
+                          "metadata",
+                          "createdAt",
+                          "actor"
+                        ]
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "number"
+                        },
+                        "limit": {
+                          "type": "number"
+                        },
+                        "total": {
+                          "type": "number"
+                        },
+                        "hasMore": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "page",
+                        "limit",
+                        "total",
+                        "hasMore"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data",
+                    "pagination"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getGroupsByIdActivity"
+      }
+    },
     "/groups/{id}/expenses": {
       "post": {
         "tags": [
@@ -4786,14 +6502,28 @@
                   "category": {
                     "type": "string",
                     "enum": [
-                      "food",
-                      "travel",
-                      "utilities",
-                      "entertainment",
                       "shopping",
-                      "health",
-                      "accommodation",
-                      "other"
+                      "groceries",
+                      "food_and_dining",
+                      "transport",
+                      "bills_and_recharges",
+                      "transfers",
+                      "medical",
+                      "travel",
+                      "repayments",
+                      "personal",
+                      "services",
+                      "insurance",
+                      "entertainment",
+                      "gaming",
+                      "small_shops",
+                      "rent",
+                      "logistics",
+                      "subscription",
+                      "investment",
+                      "fitness",
+                      "pet",
+                      "miscellaneous"
                     ]
                   },
                   "splits": {
@@ -4894,14 +6624,28 @@
                   "category": {
                     "type": "string",
                     "enum": [
-                      "food",
-                      "travel",
-                      "utilities",
-                      "entertainment",
                       "shopping",
-                      "health",
-                      "accommodation",
-                      "other"
+                      "groceries",
+                      "food_and_dining",
+                      "transport",
+                      "bills_and_recharges",
+                      "transfers",
+                      "medical",
+                      "travel",
+                      "repayments",
+                      "personal",
+                      "services",
+                      "insurance",
+                      "entertainment",
+                      "gaming",
+                      "small_shops",
+                      "rent",
+                      "logistics",
+                      "subscription",
+                      "investment",
+                      "fitness",
+                      "pet",
+                      "miscellaneous"
                     ]
                   },
                   "splits": {
@@ -5002,14 +6746,28 @@
                   "category": {
                     "type": "string",
                     "enum": [
-                      "food",
-                      "travel",
-                      "utilities",
-                      "entertainment",
                       "shopping",
-                      "health",
-                      "accommodation",
-                      "other"
+                      "groceries",
+                      "food_and_dining",
+                      "transport",
+                      "bills_and_recharges",
+                      "transfers",
+                      "medical",
+                      "travel",
+                      "repayments",
+                      "personal",
+                      "services",
+                      "insurance",
+                      "entertainment",
+                      "gaming",
+                      "small_shops",
+                      "rent",
+                      "logistics",
+                      "subscription",
+                      "investment",
+                      "fitness",
+                      "pet",
+                      "miscellaneous"
                     ]
                   },
                   "splits": {
@@ -6021,6 +7779,9 @@
                     "maxLength": 255,
                     "type": "string"
                   },
+                  "upiDeepLink": {
+                    "type": "string"
+                  },
                   "note": {
                     "type": "string"
                   }
@@ -6048,6 +7809,9 @@
                     "maxLength": 255,
                     "type": "string"
                   },
+                  "upiDeepLink": {
+                    "type": "string"
+                  },
                   "note": {
                     "type": "string"
                   }
@@ -6073,6 +7837,9 @@
                   },
                   "upiRef": {
                     "maxLength": 255,
+                    "type": "string"
+                  },
+                  "upiDeepLink": {
                     "type": "string"
                   },
                   "note": {
@@ -6121,6 +7888,113 @@
           }
         ],
         "operationId": "getGroupsByIdSettle"
+      }
+    },
+    "/settlements/{id}/complete": {
+      "post": {
+        "tags": [
+          "Settlements"
+        ],
+        "summary": "Mark settlement as completed",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "operationId": "postSettlementsByIdComplete"
+      }
+    },
+    "/settlements/{id}/dispute": {
+      "post": {
+        "tags": [
+          "Settlements"
+        ],
+        "summary": "Dispute a settlement",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "minLength": 1,
+                    "error": "reason is required",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "reason"
+                ]
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "minLength": 1,
+                    "error": "reason is required",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "reason"
+                ]
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "minLength": 1,
+                    "error": "reason is required",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "operationId": "postSettlementsByIdDispute"
+      }
+    },
+    "/settlements/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Settlements"
+        ],
+        "summary": "Cancel a settlement",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "operationId": "postSettlementsByIdCancel"
       }
     },
     "/settlements/{id}": {

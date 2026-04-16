@@ -1,8 +1,7 @@
 import { AntDesign, FontAwesome6 } from "@expo/vector-icons";
 import type { ComponentProps } from "react";
 import { Pressable, Text, View } from "react-native";
-import { useEffectiveColorScheme } from "@/hooks/use-effective-color-scheme";
-import { useUniwind } from "uniwind";
+import { useCSSVariable } from "uniwind";
 
 type AuthSocialButtonProps = {
   provider: "google" | "apple";
@@ -33,8 +32,7 @@ export function AuthSocialButton({
   onPress,
 }: AuthSocialButtonProps) {
   const icon = providerIconMap[provider];
-  const { theme } = useUniwind();
-  const iconColor = theme === "dark" ? "#ffffff" : "#000000";
+  const iconColor = useCSSVariable("--color-foreground") as string;
 
   return (
     <Pressable

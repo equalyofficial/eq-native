@@ -1,15 +1,10 @@
 import { Feather } from "@expo/vector-icons";
 import { Image, Pressable, Text, View } from "react-native";
-import { useThemeColor } from "@/hooks/use-theme-color";
+import { useCSSVariable } from "uniwind";
 import type { ProfileUser } from "../profile.data";
 
 export function ProfileIdentityCard({ user }: { user: ProfileUser }) {
-  const mutedColor = useThemeColor({}, "muted");
-  const borderColor = useThemeColor({}, "border");
-  const innerPanelColor = useThemeColor({
-    light: "#FFFFFF",
-    dark: "#09090B",
-  }, "background");
+  const mutedColor = useCSSVariable("--color-muted") as string;
 
   return (
     <View className="rounded-[2rem] border border-border bg-card px-5 py-5">
@@ -40,14 +35,7 @@ export function ProfileIdentityCard({ user }: { user: ProfileUser }) {
         </Pressable>
       </View>
 
-      <View
-        className="rounded-[1.5rem] px-4 py-4"
-        style={{
-          borderWidth: 1,
-          borderColor,
-          backgroundColor: innerPanelColor,
-        }}
-      >
+      <View className="rounded-[1.5rem] border border-border bg-background px-4 py-4">
         <Text className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-muted">
           UPI ID
         </Text>

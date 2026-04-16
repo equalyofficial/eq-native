@@ -26,11 +26,10 @@ export function ProfileLogoutSheet({
           className="mx-4"
           backgroundClassName="rounded-4xl bg-card"
         >
-          <View className="mb-6 items-center">
+          <View className="mb-6">
             <BottomSheet.Title className="text-left">Logout</BottomSheet.Title>
             <BottomSheet.Description className="mt-2 text-left">
-              You’ll be returned to the authentication flow and need to sign in
-              again.
+              We'll miss you! You'll be returned to the authentication flow.
             </BottomSheet.Description>
           </View>
 

@@ -27,12 +27,12 @@ function onLogoutSuccess() {
 }
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
-
+ 
 export function useRegister(
-  options?: UseMutationOptions<AuthTokenResponse, ApiError, RegisterBody>
+  options?: UseMutationOptions<AuthTokenResponse, ApiError, any>
 ) {
-  return useMutation<AuthTokenResponse, ApiError, RegisterBody>({
-    mutationFn: authApi.register,
+  return useMutation<AuthTokenResponse, ApiError, any>({
+    mutationFn: (vars) => authApi.register(vars as any),
     onSuccess(data, vars, ctx, mutation) {
       onAuthSuccess(data);
       options?.onSuccess?.(data, vars, ctx, mutation);

@@ -4,18 +4,20 @@ import { TabProfileButton } from "@/components/tab-profile-button";
 
 export default function GroupsScreen() {
   return (
-    <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
-      <View className="flex-1 bg-background px-5 pt-4">
-        <View className="flex-row items-start justify-between">
-          <View className="flex-1 pr-4">
-            <Text className="text-4xl font-bold tracking-tight text-foreground">
-              Groups
-            </Text>
-          </View>
+    <View className="flex-1 bg-background">
+      <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "transparent" }}>
+        <View className="flex-1 px-5 pt-4">
+          <View className="flex-row items-start justify-between">
+            <View className="flex-1 pr-4">
+              <Text className="text-4xl font-bold tracking-tight text-foreground">
+                Groups
+              </Text>
+            </View>
 
-          <TabProfileButton />
+            <TabProfileButton />
+          </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }

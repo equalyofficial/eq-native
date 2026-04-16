@@ -1,6 +1,9 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import { Text, View } from "react-native";
+import { Feather } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import { useCSSVariable } from "uniwind";
 
 import { isApiError } from "@/lib/api-error";
 import { AuthScreenShell } from "@/features/auth/components/auth-screen-shell";
@@ -14,22 +17,29 @@ import { RegisterSchema } from "../auth.schemas";
 
 type RegisterErrors = {
   fullName?: string;
-  phone?: string;
+  email?: string;
   password?: string;
   form?: string;
 };
 
 export default function RegisterScreen() {
+  const mutedColor = useCSSVariable("--color-muted");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<RegisterErrors>({});
+
   const register = useRegister({
     onSuccess() {
       setErrors({});
       router.replace("/(protected)/(tabs)");
     },
     onError(error) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       if (isApiError(error)) {
         setErrors({
           fullName: error.fieldError("name"),
-          phone: error.fieldError("phone"),
+          email: error.fieldError("email"),
           password: error.fieldError("password"),
           form: error.message,
         });
@@ -41,23 +51,20 @@ export default function RegisterScreen() {
       });
     },
   });
-  const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<RegisterErrors>({});
 
   function handleRegister() {
     const result = RegisterSchema.safeParse({
       name: fullName,
-      phone,
+      email,
       password,
     });
 
     if (!result.success) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       const fieldErrors = result.error.flatten().fieldErrors;
       setErrors({
         fullName: fieldErrors.name?.[0],
-        phone: fieldErrors.phone?.[0],
+        email: fieldErrors.email?.[0],
         password: fieldErrors.password?.[0],
       });
       return;
@@ -107,23 +114,26 @@ export default function RegisterScreen() {
         />
 
         <AuthTextField
-          label="Phone Number"
-          placeholder="+91 00000 00000"
-          value={phone}
+          label="Email Address"
+          placeholder="example@mail.com"
+          value={email}
           onChangeText={(text) => {
-            setPhone(text);
-            if (errors.phone || errors.form) {
+            setEmail(text);
+            if (errors.email || errors.form) {
               setErrors((prev) => ({
                 ...prev,
-                phone: undefined,
+                email: undefined,
                 form: undefined,
               }));
             }
           }}
-          keyboardType="phone-pad"
-          textContentType="telephoneNumber"
-          autoComplete="tel"
-          error={errors.phone}
+          keyboardType="default"
+          textContentType="emailAddress"
+          autoComplete="email"
+          error={errors.email}
+          leftIcon={
+            <Feather name="mail" size={18} color={String(mutedColor)} />
+          }
         />
 
         <AuthTextField
@@ -163,13 +173,14 @@ export default function RegisterScreen() {
             label="Login with Google"
             onPress={() => console.log("Google login")}
           />
-          <AuthSocialButton
-            provider="apple"
-            label="Sign in with Apple"
-            onPress={() => console.log("Apple login")}
-          />
+          {/* <AuthSocialButton */}
+          {/*   provider="apple" */}
+          {/*   label="Sign in with Apple" */}
+          {/*   onPress={() => console.log("Apple login")} */}
+          {/* /> */}
         </View>
       </View>
     </AuthScreenShell>
   );
 }
+

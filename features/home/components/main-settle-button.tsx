@@ -12,7 +12,7 @@ export function MainSettleButton({ show }: { show: boolean }) {
   }
 
   return (
-    <Pressable className="h-14 items-center justify-center rounded-full bg-linear-to-r from-zinc-100 to-[#7C7EFF]">
+    <Pressable className="h-14 items-center justify-center rounded-full bg-linear-to-r from-zinc-100 to-brand-accent">
       <Text className="text-lg font-bold text-white">Settle Up</Text>
     </Pressable>
   );

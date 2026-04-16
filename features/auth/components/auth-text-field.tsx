@@ -4,14 +4,14 @@ import { useState, type ReactNode } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useEffectiveColorScheme } from "@/hooks/use-effective-color-scheme";
-import { useThemeColor } from "@/hooks/use-theme-color";
+import { useCSSVariable } from "uniwind";
 
 type AuthTextFieldProps = {
   label: string;
   placeholder: string;
   value: string;
   onChangeText: (value: string) => void;
-  keyboardType?: "default" | "number-pad" | "phone-pad";
+  keyboardType?: "default" | "number-pad" | "phone-pad" | "email-address";
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
   textContentType?:
     | "none"
@@ -19,7 +19,8 @@ type AuthTextFieldProps = {
     | "telephoneNumber"
     | "password"
     | "username"
-    | "newPassword";
+    | "newPassword"
+    | "emailAddress";
   secureTextEntry?: boolean;
   autoComplete?:
     | "name"
@@ -27,7 +28,8 @@ type AuthTextFieldProps = {
     | "password"
     | "tel"
     | "username"
-    | "new-password";
+    | "new-password"
+    | "email";
   returnKeyType?: "done" | "next" | "go" | "send";
   error?: string;
   labelRight?: ReactNode;
@@ -54,11 +56,21 @@ export function AuthTextField({
   const [isSecure, setIsSecure] = useState(secureTextEntry);
   const [isFocused, setIsFocused] = useState(false);
   const colorScheme = useEffectiveColorScheme();
-  const accentColor = useThemeColor({}, "accent");
-  const borderColor = useThemeColor({}, "border");
-  const mutedColor = useThemeColor({}, "muted");
-  const rightIconColor = error ? "#EF4444" : isFocused ? accentColor : mutedColor;
-  const fieldBorderColor = error ? "#EF4444" : isFocused ? accentColor : borderColor;
+  
+  const [accentVar, borderVar, mutedVar, errorVar] = useCSSVariable([
+    "--color-accent",
+    "--color-border",
+    "--color-muted",
+    "--color-error",
+  ]);
+
+  const accentColor = accentVar as string;
+  const borderColor = borderVar as string;
+  const mutedColor = mutedVar as string;
+  const errorColor = errorVar as string;
+
+  const rightIconColor = error ? errorColor : isFocused ? accentColor : mutedColor;
+  const fieldBorderColor = error ? errorColor : isFocused ? accentColor : borderColor;
 
   return (
     <View className="gap-2">

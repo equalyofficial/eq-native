@@ -2,6 +2,9 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { Alert, Pressable, Text, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import { useCSSVariable } from "uniwind";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 
 import { AuthScreenShell } from "@/features/auth/components/auth-screen-shell";
 import { AuthTextField } from "@/features/auth/components/auth-text-field";
@@ -9,31 +12,46 @@ import { AuthPrimaryButton } from "@/features/auth/components/auth-primary-butto
 import { AuthDivider } from "@/features/auth/components/auth-divider";
 import { AuthSocialButton } from "@/features/auth/components/auth-social-button";
 import { AuthInlineLink } from "@/features/auth/components/auth-inline-link";
-import { useThemeColor } from "@/hooks/use-theme-color";
+import { AuthModeToggle } from "../components/auth-mode-toggle";
 import { LoginSchema } from "../auth.schemas";
 
+type AuthMode = "email" | "phone";
+
 export default function LoginScreen() {
-  const mutedColor = useThemeColor({}, "muted");
-  const [phone, setPhone] = useState("");
+  const mutedColor = useCSSVariable("--color-muted") as string;
+  const [authMode, setAuthMode] = useState<AuthMode>("email");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<{ phone?: string; password?: string }>(
-    {},
-  );
+  const [errors, setErrors] = useState<{
+    phone?: string;
+    email?: string;
+    password?: string;
+    form?: string;
+  }>({});
 
   function handleLogin() {
-    const result = LoginSchema.safeParse({ phone, password });
-
+    const payload = {
+      mode: authMode,
+      [authMode]: identifier,
+      password,
+    };
+ 
+    const result = LoginSchema.safeParse(payload);
+ 
     if (!result.success) {
-      const fieldErrors = result.error.flatten().fieldErrors;
-      const newErrors = {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      const fieldErrors = result.error.flatten().fieldErrors as Record<
+        string,
+        string[] | undefined
+      >;
+      setErrors({
         phone: fieldErrors.phone?.[0],
+        email: fieldErrors.email?.[0],
         password: fieldErrors.password?.[0],
-      };
-      setErrors(newErrors);
-
+      });
       return;
     }
-
+ 
     setErrors({});
     router.replace("/(protected)/(tabs)");
   }
@@ -57,21 +75,54 @@ export default function LoginScreen() {
       }
     >
       <View className="gap-6">
-        <AuthTextField
-          label="Phone Number *"
-          placeholder="+91 98765 43210"
-          value={phone}
-          onChangeText={(text) => {
-            setPhone(text);
-            if (errors.phone)
-              setErrors((prev) => ({ ...prev, phone: undefined }));
+        <AuthModeToggle
+          value={authMode}
+          onChange={(val) => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            setAuthMode(val as AuthMode);
+            setIdentifier("");
           }}
-          keyboardType="phone-pad"
-          textContentType="telephoneNumber"
-          autoComplete="tel"
-          error={errors.phone}
-          rightIcon={<Feather name="smartphone" size={18} color={mutedColor} />}
+          options={[
+            { value: "email", label: "Email" },
+            { value: "phone", label: "Phone" },
+          ]}
         />
+
+        <Animated.View
+          key={authMode}
+          entering={FadeIn.duration(200)}
+          exiting={FadeOut.duration(200)}
+        >
+          <AuthTextField
+            label={authMode === "email" ? "EMAIL ADDRESS *" : "PHONE NUMBER *"}
+            placeholder={
+              authMode === "email" ? "example@mail.com" : "+91 98765 43210"
+            }
+            value={identifier}
+            onChangeText={(text) => {
+              setIdentifier(text);
+              if (errors.phone || errors.email)
+                setErrors((prev) => ({
+                  ...prev,
+                  phone: undefined,
+                  email: undefined,
+                }));
+            }}
+            keyboardType={authMode === "email" ? "default" : "phone-pad"}
+            textContentType={
+              authMode === "email" ? "emailAddress" : "telephoneNumber"
+            }
+            autoComplete={authMode === "email" ? "email" : "tel"}
+            error={authMode === "email" ? errors.email : errors.phone}
+            rightIcon={
+              <Feather
+                name={authMode === "email" ? "mail" : "smartphone"}
+                size={18}
+                color={mutedColor}
+              />
+            }
+          />
+        </Animated.View>
 
         <AuthTextField
           label="Password *"
@@ -104,13 +155,9 @@ export default function LoginScreen() {
             label="Login with Google"
             onPress={() => console.log("Google login")}
           />
-          <AuthSocialButton
-            provider="apple"
-            label="Sign in with Apple"
-            onPress={() => console.log("Apple login")}
-          />
         </View>
       </View>
     </AuthScreenShell>
   );
 }
+

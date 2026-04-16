@@ -26,9 +26,14 @@ All styling uses **Uniwind** (`uniwind.dev`) — Tailwind CSS v4 for React Nativ
 - `bg-background` / `text-foreground` — main surface/text
 - `bg-card` / `text-muted` — secondary surfaces
 - `border-border` — borders
-- Light: white background, black text. Dark: pure black background, white text (Uber-like).
+- `bg-button-primary` / `text-button-primary-foreground` — primary CTA (black/white inverts per theme)
+- `bg-button-secondary` / `text-button-secondary-foreground` — secondary action
+- `text-primary` / `text-accent` — indigo brand color (text use only, never backgrounds)
+- `text-success` / `text-danger` — semantic feedback colors
+- `bg-card-deep` — deep indigo for special card surfaces (`#150D31`)
+- Light: white background, black text. Dark: pure black background (`#000000`), white text (Uber-like).
 
-**Font**: Outfit loaded via `@expo-google-fonts/outfit`. Available as `font-sans` (400), `font-medium` (500), `font-semibold` (600), `font-bold` (700) in Tailwind classes. Font names in `constants/theme.ts` `Fonts` export match exactly.
+**Font**: Outfit loaded via `@expo-google-fonts/outfit`. Available as `font-sans` (400), `font-medium` (500), `font-semibold` (600), `font-bold` (700) in Tailwind classes.
 
 ### API Layer — openapi-fetch + TanStack Query
 Backend is a separate Elysia repo. Types are generated from `api.json` (OpenAPI spec) — run `npm run api:types` after backend changes.
@@ -58,7 +63,23 @@ All API success responses follow `{ success: true, data: T, message: string }`. 
 `store/use-auth-store.ts` — auth tokens + `isAuthenticated`. `setTokens()` automatically calls `setAuthToken()` on the api client. `clearTokens()` calls `clearAuthToken()` and is called by `useLogout` along with `queryClient.clear()` to wipe all cached data on session end.
 
 ### Navigation
-expo-router file-based routing. Root layout: `app/_layout.tsx` (QueryClientProvider → SafeAreaProvider → ThemeProvider → Stack). Two tabs: Home (`index`) and Profile (`profile`). Tab bar uses `expo-blur` BlurView background (wrapped with `withUniwind`).
+expo-router file-based routing. Root layout provider chain: `GestureHandlerRootView` → `QueryClientProvider` → `SafeAreaProvider` → `HeroUINativeProvider` → `Stack` + `Toasts`.
+
+Five tabs: Home (`index`), Groups, Slice, Friends, Activity. Profile is **not** a tab — it's accessed via `TabProfileButton` in each screen's header row. Custom animated tab bar in `components/custom-bottom-tab-bar.tsx` uses `react-native-gesture-handler` + `react-native-reanimated` + `react-native-worklets` for draggable physics-based navigation.
+
+### Theming
+- `useEffectiveColorScheme()` (`hooks/use-effective-color-scheme.ts`) — resolves the true light/dark value accounting for both Uniwind's manual override and system preference. Always use this instead of `useColorScheme()` directly.
+- `Uniwind.setTheme('light' | 'dark' | 'system')` — programmatic theme switching; used by `ProfileThemeSelector`.
+- `useCSSVariable(name)` — reads a live CSS variable value for use in Reanimated animated props/styles.
+
+### Toast
+`lib/toast.ts` exports `AppToast` — a singleton wrapper around `@backpackapp-io/react-native-toast`. Always use `AppToast.success()`, `AppToast.error()`, `AppToast.info()` instead of calling the toast library directly. Toast styling is configured globally in the `<Toasts>` provider in `app/_layout.tsx`.
+
+### HeroUI Native
+`heroui-native` is installed and `<HeroUINativeProvider>` wraps the app. Use HeroUI Native components where appropriate — styles imported via `@import "heroui-native/styles"` in `global.css`.
+
+### Design Language
+See `DESIGN.md` for the full Uber-inspired design spec. Key rules: pill shapes (`rounded-full`), true black/white palette, Outfit font, no gradients, whisper-soft shadows (0.08–0.16 opacity), compact information-dense layouts.
 
 ### Key Constraints
 - `withUniwindConfig` must be the **outermost** wrapper in `metro.config.js`
@@ -66,6 +87,8 @@ expo-router file-based routing. Root layout: `app/_layout.tsx` (QueryClientProvi
 - Splash screen stays visible until Outfit fonts are loaded (`useFonts` + `SplashScreen.hideAsync`)
 - `newArchEnabled` is not in `app.json` — SDK 55 always uses new architecture
 - `edgeToEdgeEnabled` is not in `app.json` — SDK 55 removed this field
+- `GestureHandlerRootView` must be the outermost React wrapper (required for `react-native-gesture-handler`)
+- Reanimated worklet callbacks that call React state must use `scheduleOnRN()` (from `react-native-worklets`) or `runOnJS()` — never call setState directly from a worklet
 
 <!-- code-review-graph MCP tools -->
 ## MCP Tools: code-review-graph

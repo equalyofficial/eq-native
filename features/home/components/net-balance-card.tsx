@@ -2,6 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useCSSVariable } from "uniwind";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -99,10 +100,16 @@ function MovingGlow() {
 }
 
 export function NetBalanceCard() {
+  const brandAccent = useCSSVariable('--color-brand-accent');
+  const successColor = useCSSVariable('--color-success');
+  const dangerColor = useCSSVariable('--color-danger');
+  const cardDeep = useCSSVariable('--color-card-deep');
+  const brandGold = useCSSVariable('--color-brand-gold');
+
   return (
     <View className="px-5">
       <View style={styles.outerGlow} className="rounded-[2.15rem]">
-        <View className="overflow-hidden rounded-[2rem] border border-white/10 bg-[#150D31]">
+        <View className="overflow-hidden rounded-[2rem] border border-white/10 bg-card-deep">
           <LinearGradient
             colors={["#1A103A", "#2E1E68", "#4A35A0", "#21124D"]}
             start={{ x: 0, y: 0 }}
@@ -122,7 +129,7 @@ export function NetBalanceCard() {
 
           <View className="gap-5 px-5 py-6">
             <View className="gap-1">
-              <Text className="text-xs font-semibold uppercase tracking-[0.28em] text-[#B0A7FF]">
+              <Text className="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">
                 Net Balance
               </Text>
               <Text className="text-5xl font-bold tracking-tight text-white">
@@ -132,14 +139,14 @@ export function NetBalanceCard() {
 
             <View className="flex-row gap-3">
               <View className="flex-row items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-950/55 px-3 py-2">
-                <Feather name="arrow-up" size={12} color="#4ADE80" />
+                <Feather name="arrow-up" size={12} color={String(successColor)} />
                 <Text className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-400">
                   Owed ₹4,800
                 </Text>
               </View>
 
               <View className="flex-row items-center gap-2 rounded-full border border-red-500/30 bg-red-950/45 px-3 py-2">
-                <Feather name="arrow-down" size={12} color="#F87171" />
+                <Feather name="arrow-down" size={12} color={String(dangerColor)} />
                 <Text className="text-xs font-semibold uppercase tracking-[0.14em] text-red-400">
                   Owe ₹2,400
                 </Text>
@@ -156,7 +163,7 @@ export function NetBalanceCard() {
                 <Text className="text-sm font-semibold uppercase tracking-[0.18em] text-white/90">
                   Settle Up
                 </Text>
-                <Feather name="arrow-right" size={16} color="#FFFFFF" />
+                <Feather name="arrow-right" size={16} color={String(useCSSVariable('--color-background'))} />
               </Pressable>
             </View>
           </View>
@@ -166,14 +173,18 @@ export function NetBalanceCard() {
   );
 }
 
-const styles = StyleSheet.create({
-  outerGlow: {
-    shadowColor: "#6F63FF",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.22,
-    shadowRadius: 22,
-    elevation: 12,
-  },
+  // Helper to get brand accent for styles outside the component
+  const getBrandAccent = () => useCSSVariable('--color-brand-accent');
+
+  const styles = StyleSheet.create({
+    outerGlow: {
+      shadowColor: "#6F63FF", // We will fix this in a different way since StyleSheet.create is static
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.22,
+      shadowRadius: 22,
+      elevation: 12,
+    },
+
   innerBorderGlow: {
     ...StyleSheet.absoluteFillObject,
     borderRadius: 32,

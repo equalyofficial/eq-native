@@ -1,11 +1,19 @@
 import { Stack } from "expo-router";
+import { useEffectiveColorScheme } from "@/hooks/use-effective-color-scheme";
 
 export default function ProtectedLayout() {
-  // This is where you would handle authentication redirection in the future.
-  // For now, it just serves as a layout for protected routes.
-  
+  const isDark = useEffectiveColorScheme() === "dark";
+  const bgColor = isDark ? "#000000" : "#ffffff";
+
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        statusBarStyle: isDark ? "light" : "dark",
+        statusBarTranslucent: true,
+        contentStyle: { backgroundColor: bgColor },
+      }}
+    >
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="profile" />
     </Stack>
