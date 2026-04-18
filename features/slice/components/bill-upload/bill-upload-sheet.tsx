@@ -20,6 +20,13 @@ export function BillUploadSheet({ isOpen, onOpenChange }: BillUploadSheetProps) 
   const mutedColor = String(useCSSVariable("--color-muted") ?? "#71717a");
 
   const pickImage = async (fromCamera: boolean) => {
+    if (fromCamera) {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") return;
+    } else {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") return;
+    }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const result = fromCamera
       ? await ImagePicker.launchCameraAsync({ quality: 0.85, allowsEditing: true })
