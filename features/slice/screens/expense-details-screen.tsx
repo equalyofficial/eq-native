@@ -110,9 +110,11 @@ function SplitWithCard({ onPress }: { onPress: () => void }) {
           </View>
           {/* Per-person amount */}
           <Text className="text-xs text-muted">
-            Per person{" "}
-            <Text className="font-semibold text-foreground">{formatRupee(perPerson)}</Text>
-            {" · "}
+            {splitType === "equal"
+              ? `Per person ${formatRupee(perPerson)} · `
+              : splitType === "percentage"
+              ? "Split by percentage · "
+              : "Custom amounts · "}
             {selectedMembers.length} member{selectedMembers.length !== 1 ? "s" : ""}
           </Text>
         </View>
