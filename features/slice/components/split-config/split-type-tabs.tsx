@@ -26,14 +26,18 @@ export function SplitTypeTabs({ splitType, onSplitTypeChange }: SplitTypeTabsPro
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               onSplitTypeChange(tab.id);
             }}
-            className={`flex-1 items-center rounded-full py-2.5 ${
-              isActive ? "bg-foreground" : "bg-transparent"
-            }`}
+            className={
+              isActive
+                ? "flex-1 items-center rounded-full py-2.5 bg-foreground"
+                : "flex-1 items-center rounded-full py-2.5 bg-transparent"
+            }
           >
             <Text
-              className={`text-sm font-semibold ${
-                isActive ? "text-background" : "text-muted"
-              }`}
+              className={
+                isActive
+                  ? "text-sm font-semibold text-background"
+                  : "text-sm font-semibold text-muted"
+              }
             >
               {tab.label}
             </Text>
