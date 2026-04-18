@@ -33,7 +33,6 @@ export function MemberSplitList({
   onCustomAmountChange,
 }: MemberSplitListProps) {
   const primaryColor = String(useCSSVariable("--color-primary") ?? "#4f46e5");
-  const fgColor = String(useCSSVariable("--color-foreground") ?? "#000000");
 
   const equalShare = members.length > 0 ? totalAmount / members.length : 0;
 
@@ -51,7 +50,6 @@ export function MemberSplitList({
         } else if (splitType === "percentage") {
           const pct = percentages[member.id] ?? Math.round(100 / members.length);
           amountDisplay = formatRupee((totalAmount * pct) / 100);
-          portionLabel = `${pct}%`;
         } else {
           const custom = customAmounts[member.id] ?? equalShare;
           amountDisplay = formatRupee(custom);
