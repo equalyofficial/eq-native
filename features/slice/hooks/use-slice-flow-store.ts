@@ -65,6 +65,6 @@ export const useSliceFlowStore = create<SliceFlowState & SliceFlowActions>(
     setCustomAmount: (memberId, amount) =>
       set((s) => ({ customAmounts: { ...s.customAmounts, [memberId]: amount } })),
     setBillImage: (uri) => set({ billImageUri: uri }),
-    resetFlow: () => set(initialState),
+    resetFlow: () => set({ ...initialState, date: new Date() }),
   }),
 );
