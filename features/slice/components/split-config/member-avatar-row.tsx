@@ -5,6 +5,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withSequence,
 } from "react-native-reanimated";
 import { useCSSVariable } from "uniwind";
 import type { MockMember } from "../../slice-flow.data";
@@ -19,13 +20,14 @@ function AvatarBubble({
   member,
   isSelected,
   onToggle,
+  primaryColor,
 }: {
   member: MockMember;
   isSelected: boolean;
   onToggle: () => void;
+  primaryColor: string;
 }) {
   const scale = useSharedValue(1);
-  const primaryColor = useCSSVariable("--color-primary");
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -33,30 +35,39 @@ function AvatarBubble({
 
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    scale.value = withSpring(0.88, { damping: 10, stiffness: 400 });
-    setTimeout(() => {
-      scale.value = withSpring(1, { damping: 14, stiffness: 280 });
-    }, 100);
+    scale.value = withSequence(
+      withSpring(0.88, { damping: 10, stiffness: 400 }),
+      withSpring(1, { damping: 14, stiffness: 280 }),
+    );
     onToggle();
   };
 
   const firstName = member.name.split(" ")[0] ?? member.name;
 
   return (
-    <Pressable onPress={handlePress} className="items-center gap-1.5" style={{ width: 60 }}>
-      <Animated.View style={[animatedStyle, styles.avatarWrapper, isSelected ? { borderColor: String(primaryColor), borderWidth: 2.5 } : { borderColor: "rgba(128,128,128,0.25)", borderWidth: 2 }]}>
-        <Image
-          source={{ uri: member.avatarUrl }}
-          style={[styles.avatar, !isSelected && { opacity: 0.5 }]}
-        />
-      </Animated.View>
+    <Animated.View style={[animatedStyle, { width: 60, alignItems: "center", gap: 6 }]}>
+      <Pressable onPress={handlePress}>
+        <View
+          style={[
+            styles.avatarWrapper,
+            isSelected
+              ? { borderColor: primaryColor, borderWidth: 2.5 }
+              : { borderColor: "rgba(128,128,128,0.25)", borderWidth: 2 },
+          ]}
+        >
+          <Image
+            source={{ uri: member.avatarUrl }}
+            style={[styles.avatar, !isSelected && { opacity: 0.5 }]}
+          />
+        </View>
+      </Pressable>
       <Text
-        className={`text-xs font-medium ${isSelected ? "text-foreground" : "text-muted"}`}
+        className={isSelected ? "text-xs font-medium text-foreground" : "text-xs font-medium text-muted"}
         numberOfLines={1}
       >
         {firstName}
       </Text>
-    </Pressable>
+    </Animated.View>
   );
 }
 
@@ -66,6 +77,7 @@ export function MemberAvatarRow({
   onToggleMember,
 }: MemberAvatarRowProps) {
   const selectedCount = selectedMemberIds.length;
+  const primaryColor = String(useCSSVariable("--color-primary") ?? "#4f46e5");
 
   return (
     <View className="gap-3">
@@ -89,6 +101,7 @@ export function MemberAvatarRow({
             member={member}
             isSelected={selectedMemberIds.includes(member.id)}
             onToggle={() => onToggleMember(member.id)}
+            primaryColor={primaryColor}
           />
         ))}
       </ScrollView>
