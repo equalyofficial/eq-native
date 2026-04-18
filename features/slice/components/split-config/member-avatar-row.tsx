@@ -70,7 +70,7 @@ export function MemberAvatarRow({
   return (
     <View className="gap-3">
       <View className="flex-row items-center justify-between">
-        <Text className="text-xs font-semibold uppercase tracking-widest text-muted">
+        <Text className="text-xs uppercase tracking-widest text-muted">
           Select Members
         </Text>
         <Text className="text-xs font-semibold text-primary">
