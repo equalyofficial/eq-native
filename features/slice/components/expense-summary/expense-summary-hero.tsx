@@ -14,10 +14,13 @@ interface ExpenseSummaryHeroProps {
   category: string;
 }
 
-function formatIndian(val: string): string {
-  const parts = val.split(".");
-  parts[0] = new Intl.NumberFormat("en-IN").format(parseInt(parts[0] || "0", 10));
-  return parts.join(".");
+function formatIndian(val: string): { intPart: string; decimalPart: string | null } {
+  const num = parseFloat(val);
+  const safe = isFinite(num) ? num : 0;
+  const [rawInt, rawDec] = safe.toString().split(".");
+  const intFormatted = new Intl.NumberFormat("en-IN").format(parseInt(rawInt ?? "0", 10));
+  const decimalPart = rawDec && rawDec !== "00" && rawDec.length > 0 ? rawDec : null;
+  return { intPart: intFormatted, decimalPart };
 }
 
 export function ExpenseSummaryHero({ amount, category }: ExpenseSummaryHeroProps) {
@@ -45,7 +48,7 @@ export function ExpenseSummaryHero({ amount, category }: ExpenseSummaryHeroProps
     opacity: chipOpacity.value,
   }));
 
-  const display = formatIndian(amount);
+  const { intPart, decimalPart } = formatIndian(amount);
 
   return (
     <View className="items-center gap-4 py-8">
@@ -56,11 +59,11 @@ export function ExpenseSummaryHero({ amount, category }: ExpenseSummaryHeroProps
       <Animated.View style={heroStyle} className="flex-row items-baseline">
         <Text className="mr-1 text-3xl font-bold text-foreground opacity-40">₹</Text>
         <Text className="text-7xl font-bold tracking-tighter text-foreground">
-          {display.split(".")[0]}
+          {intPart}
         </Text>
-        {display.includes(".") && (
+        {decimalPart !== null && (
           <Text className="text-4xl font-medium tracking-tight text-foreground opacity-70">
-            .{display.split(".")[1]}
+            .{decimalPart}
           </Text>
         )}
       </Animated.View>
