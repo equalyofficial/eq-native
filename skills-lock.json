@@ -6,6 +6,11 @@
       "sourceType": "github",
       "computedHash": "a818cdc41dcfaa50dd891c5cb5e5705968338de02e7e37949ca56e8c30ad4176"
     },
+    "caveman-commit": {
+      "source": "JuliusBrussee/caveman",
+      "sourceType": "github",
+      "computedHash": "76994afc39b68f4dbe098df76262b68d9928a23ee0f6aaebb11ba0e0f55bfa13"
+    },
     "caveman-help": {
       "source": "JuliusBrussee/caveman",
       "sourceType": "github",
@@ -16,15 +21,25 @@
       "sourceType": "github",
       "computedHash": "1dc59e7e896bc9dd449e43116c4c8b2e656b88c3370df91848330c17347af3d0"
     },
+    "compress": {
+      "source": "JuliusBrussee/caveman",
+      "sourceType": "github",
+      "computedHash": "05c97bc3120108acd0b80bdef7fb4fa7c224ba83c8d384ccbc97f92e8a065918"
+    },
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "computedHash": "063a0e6448123cd359ad0044cc46b0e490cc7964d45ef4bb9fd842bd2ffbca67"
+    },
     "heroui-native": {
       "source": "heroui-inc/heroui",
       "sourceType": "github",
-      "computedHash": "f677f5246f10d5a754e2b45fda92e4edd4a7121ec7b568f316d352e5dce2fd13"
+      "computedHash": "d2fc03a13d03678d40799726a144ba72ba1cb08126176ddbf0a0461c901aef29"
     },
     "uniwind": {
       "source": "uni-stack/uniwind",
       "sourceType": "github",
-      "computedHash": "b10890f7e7cf4c4a683d9cb84df1b02e1d0b4cd7670ffc8369ee5a5740083e49"
+      "computedHash": "76e8e9be3a60fe60d9229c7a0c6e4c30bdde2e23ff377dbfa827b80226bd4d89"
     }
   }
 }

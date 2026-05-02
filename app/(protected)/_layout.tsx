@@ -16,6 +16,10 @@ export default function ProtectedLayout() {
     >
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="profile" />
+      <Stack.Screen
+        name="expense-details"
+        options={{ animation: "slide_from_bottom" }}
+      />
     </Stack>
   );
 }

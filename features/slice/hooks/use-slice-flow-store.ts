@@ -17,6 +17,7 @@ export type SliceFlowState = {
 
 type SliceFlowActions = {
   initFlow: (amount: string, category: string) => void;
+  setCategory: (category: string) => void;
   setDescription: (description: string) => void;
   setDate: (date: Date) => void;
   setGroupId: (groupId: string) => void;
@@ -49,6 +50,7 @@ export const useSliceFlowStore = create<SliceFlowState & SliceFlowActions>(
     initFlow: (amount, category) =>
       set({ ...initialState, amount, category, date: new Date() }),
 
+    setCategory: (category) => set({ category }),
     setDescription: (description) => set({ description }),
     setDate: (date) => set({ date }),
     setGroupId: (groupId) => set({ groupId }),

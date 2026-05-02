@@ -121,8 +121,9 @@ export function GroupSelectionSheet({
   return (
     <BottomSheet isOpen={isOpen} onOpenChange={onOpenChange}>
       <BottomSheet.Portal>
-        <BottomSheet.Overlay />
+        <BottomSheet.Overlay className="bg-black/30" />
         <BottomSheet.Content
+          backgroundClassName="rounded-t-[2rem] bg-background"
           className="bg-background"
           contentContainerClassName="pt-3 pb-0"
         >

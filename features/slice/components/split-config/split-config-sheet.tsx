@@ -1,37 +1,59 @@
 import React, { useState } from "react";
 import {
-  View, Text, Pressable, ScrollView, StyleSheet,
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  Image,
+  TextInput,
+  StyleSheet,
 } from "react-native";
 import { BottomSheet } from "heroui-native";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import Animated, {
+  FadeInDown,
+  FadeOut,
+  LinearTransition,
+} from "react-native-reanimated";
 import { useCSSVariable } from "uniwind";
-import Animated, { FadeIn } from "react-native-reanimated";
 
 import { useSliceFlowStore } from "../../hooks/use-slice-flow-store";
 import { mockGroups } from "../../slice-flow.data";
-import { MemberAvatarRow } from "./member-avatar-row";
+import { MemberGrid } from "./member-grid";
 import { SplitTypeTabs } from "./split-type-tabs";
-import { MemberSplitList } from "./member-split-list";
 import { GroupSelectionSheet } from "./group-selection-sheet";
+
+const SPRING_LAYOUT = LinearTransition.springify().damping(22).stiffness(280);
+const FADE_IN = FadeInDown.springify().damping(18).stiffness(260).duration(320);
 
 interface SplitConfigSheetProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function SplitConfigSheet({ isOpen, onOpenChange }: SplitConfigSheetProps) {
+export function SplitConfigSheet({
+  isOpen,
+  onOpenChange,
+}: SplitConfigSheetProps) {
   const {
     amount,
-    groupId, setGroupId,
-    selectedMemberIds, toggleMember, setSelectedMembers,
-    splitType, setSplitType,
-    percentages, setPercentage,
-    customAmounts, setCustomAmount,
+    groupId,
+    setGroupId,
+    selectedMemberIds,
+    toggleMember,
+    setSelectedMembers,
+    splitType,
+    setSplitType,
+    percentages,
+    setPercentage,
+    customAmounts,
+    setCustomAmount,
   } = useSliceFlowStore();
 
   const [isGroupSheetOpen, setIsGroupSheetOpen] = useState(false);
-  const fgColor = String(useCSSVariable("--color-foreground") ?? "#000000");
+
+  const fgColor = String(useCSSVariable("--color-foreground") ?? "#000");
   const mutedColor = String(useCSSVariable("--color-muted") ?? "#71717a");
 
   const totalAmount = parseFloat(amount) || 0;
@@ -39,11 +61,26 @@ export function SplitConfigSheet({ isOpen, onOpenChange }: SplitConfigSheetProps
   const selectedMembers = (selectedGroup?.members ?? []).filter((m) =>
     selectedMemberIds.includes(m.id),
   );
+  const equalShare =
+    selectedMembers.length > 0 ? totalAmount / selectedMembers.length : 0;
+
+  const allSelected =
+    selectedGroup !== null &&
+    selectedGroup.members.every((m) => selectedMemberIds.includes(m.id));
 
   const handleGroupSelect = (gId: string) => {
     setGroupId(gId);
     const group = mockGroups.find((g) => g.id === gId);
     if (group) setSelectedMembers(group.members.map((m) => m.id));
+  };
+
+  const handleToggleAll = () => {
+    if (!selectedGroup) return;
+    if (allSelected) {
+      setSelectedMembers([]);
+    } else {
+      setSelectedMembers(selectedGroup.members.map((m) => m.id));
+    }
   };
 
   const handleConfirm = () => {
@@ -59,23 +96,49 @@ export function SplitConfigSheet({ isOpen, onOpenChange }: SplitConfigSheetProps
       maximumFractionDigits: 0,
     }).format(value);
 
+  const summaryText =
+    selectedMembers.length === 0
+      ? "Select members to continue"
+      : splitType === "equal"
+        ? `${formatRupee(equalShare)} each · ${selectedMembers.length} ${selectedMembers.length === 1 ? "person" : "people"}`
+        : `${selectedMembers.length} ${selectedMembers.length === 1 ? "person" : "people"} · Custom split`;
+
   return (
     <>
       <BottomSheet isOpen={isOpen} onOpenChange={onOpenChange}>
         <BottomSheet.Portal>
-          <BottomSheet.Overlay />
+          <BottomSheet.Overlay className="bg-black/40" />
           <BottomSheet.Content
+            backgroundClassName="rounded-t-[2.5rem] bg-background"
             className="bg-background"
             contentContainerClassName="pt-2 pb-0"
           >
-            {/* Header */}
-            <View className="flex-row items-start justify-between px-6 pb-4 pt-2">
-              <View className="gap-0.5">
+            {/* ── Header ── */}
+            <View className="flex-row items-center justify-between px-6 pt-3 pb-5">
+              <View style={{ gap: 2 }}>
                 <Text className="text-xs font-semibold uppercase tracking-widest text-muted">
-                  New Transaction
+                  Splitting
                 </Text>
-                <Text className="text-2xl font-bold text-foreground">Split With</Text>
+                <View
+                  className="flex-row items-center"
+                  style={{ gap: 10, marginTop: 2 }}
+                >
+                  <Text className="text-2xl font-bold text-foreground">
+                    Split With
+                  </Text>
+                  {totalAmount > 0 && (
+                    <View
+                      className="rounded-full bg-foreground"
+                      style={{ paddingHorizontal: 12, paddingVertical: 4 }}
+                    >
+                      <Text className="text-xs font-bold text-background">
+                        {formatRupee(totalAmount)}
+                      </Text>
+                    </View>
+                  )}
+                </View>
               </View>
+
               <Pressable
                 onPress={() => onOpenChange(false)}
                 className="h-9 w-9 items-center justify-center rounded-full bg-card active:opacity-70"
@@ -85,108 +148,252 @@ export function SplitConfigSheet({ isOpen, onOpenChange }: SplitConfigSheetProps
               </Pressable>
             </View>
 
+            {/* ── Scrollable body ── */}
             <ScrollView
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 160, gap: 20 }}
+              contentContainerStyle={{
+                paddingHorizontal: 20,
+                paddingBottom: 148,
+                gap: 20,
+              }}
               keyboardShouldPersistTaps="handled"
             >
-              {/* Group Selector */}
-              <View className="gap-2">
+              {/* Group selector */}
+              <Animated.View layout={SPRING_LAYOUT} style={{ gap: 8 }}>
                 <Text className="text-xs font-semibold uppercase tracking-widest text-muted">
-                  Select Group
+                  Group
                 </Text>
                 <Pressable
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     setIsGroupSheetOpen(true);
                   }}
-                  className="flex-row items-center justify-between rounded-2xl border border-border bg-card px-4 py-3.5"
+                  className="flex-row items-center justify-between rounded-2xl border border-border bg-card px-4 py-4 active:opacity-80"
                 >
-                  <View className="flex-row items-center gap-3">
+                  <View className="flex-row items-center" style={{ gap: 12 }}>
                     <Text className="text-xl leading-none">
                       {selectedGroup?.emoji ?? "👥"}
                     </Text>
                     <Text
                       className={
                         selectedGroup
-                          ? "text-base font-medium text-foreground"
+                          ? "text-base font-semibold text-foreground"
                           : "text-base font-medium text-muted"
                       }
                     >
                       {selectedGroup?.name ?? "Select a group"}
                     </Text>
                   </View>
-                  <Feather name="chevron-right" size={18} color={mutedColor} />
+                  <View className="flex-row items-center" style={{ gap: 8 }}>
+                    {selectedGroup && (
+                      <Text className="text-xs text-muted">
+                        {selectedGroup.members.length} members
+                      </Text>
+                    )}
+                    <Feather name="chevron-right" size={16} color={mutedColor} />
+                  </View>
                 </Pressable>
-              </View>
+              </Animated.View>
 
-              {/* Member Avatar Row — appears after group selected */}
+              {/* Members + split config — revealed after group selection */}
               {selectedGroup && (
-                <Animated.View entering={FadeIn.duration(250)}>
-                  <MemberAvatarRow
+                <Animated.View
+                  entering={FADE_IN}
+                  exiting={FadeOut.duration(150)}
+                  layout={SPRING_LAYOUT}
+                  style={{ gap: 20 }}
+                >
+                  {/* Member section header */}
+                  <View className="flex-row items-center justify-between">
+                    <Text className="text-xs font-semibold uppercase tracking-widest text-muted">
+                      Members
+                    </Text>
+                    <Pressable onPress={handleToggleAll} hitSlop={8}>
+                      <Text className="text-xs font-semibold text-primary">
+                        {allSelected ? "Deselect all" : "Select all"}
+                      </Text>
+                    </Pressable>
+                  </View>
+
+                  {/* 2-column avatar grid */}
+                  <MemberGrid
                     members={selectedGroup.members}
                     selectedMemberIds={selectedMemberIds}
                     onToggleMember={toggleMember}
-                  />
-                </Animated.View>
-              )}
-
-              {/* Split Type Tabs — appears after group selected */}
-              {selectedGroup && (
-                <Animated.View entering={FadeIn.duration(250)} className="gap-2">
-                  <Text className="text-xs font-semibold uppercase tracking-widest text-muted">
-                    Split Type
-                  </Text>
-                  <SplitTypeTabs splitType={splitType} onSplitTypeChange={setSplitType} />
-                </Animated.View>
-              )}
-
-              {/* Member Split List — appears after members selected */}
-              {selectedMembers.length > 0 && (
-                <Animated.View entering={FadeIn.duration(250)}>
-                  <MemberSplitList
-                    members={selectedMembers}
                     splitType={splitType}
                     totalAmount={totalAmount}
                     percentages={percentages}
                     customAmounts={customAmounts}
-                    onPercentageChange={setPercentage}
-                    onCustomAmountChange={setCustomAmount}
                   />
+
+                  {/* Split type tabs with animated indicator */}
+                  <Animated.View layout={SPRING_LAYOUT} style={{ gap: 8 }}>
+                    <Text className="text-xs font-semibold uppercase tracking-widest text-muted">
+                      Split Type
+                    </Text>
+                    <SplitTypeTabs
+                      splitType={splitType}
+                      onSplitTypeChange={setSplitType}
+                    />
+                  </Animated.View>
+
+                  {/* Compact input rows — only for percentage or custom splits */}
+                  {splitType !== "equal" && selectedMembers.length > 0 && (
+                    <Animated.View
+                      entering={FADE_IN}
+                      exiting={FadeOut.duration(120)}
+                      layout={SPRING_LAYOUT}
+                      style={{ gap: 8 }}
+                    >
+                      <Text className="text-xs font-semibold uppercase tracking-widest text-muted">
+                        Amounts
+                      </Text>
+                      <View className="rounded-2xl bg-card overflow-hidden">
+                        {selectedMembers.map((member, index) => {
+                          const isLast = index === selectedMembers.length - 1;
+                          const pct =
+                            percentages[member.id] ??
+                            Math.round(100 / selectedMembers.length);
+                          const custom =
+                            customAmounts[member.id] !== undefined
+                              ? customAmounts[member.id]!
+                              : equalShare;
+                          const displayAmount =
+                            splitType === "percentage"
+                              ? formatRupee((totalAmount * pct) / 100)
+                              : formatRupee(custom);
+
+                          return (
+                            <View key={member.id}>
+                              <View
+                                className="flex-row items-center px-4 py-3"
+                                style={{ gap: 12 }}
+                              >
+                                <Image
+                                  source={{ uri: member.avatarUrl }}
+                                  className="h-8 w-8 rounded-full"
+                                />
+                                <Text
+                                  className="flex-1 text-sm font-medium text-foreground"
+                                  numberOfLines={1}
+                                >
+                                  {member.name.split(" ")[0]}
+                                </Text>
+
+                                {/* Editable input pill */}
+                                {splitType === "percentage" ? (
+                                  <View
+                                    className="flex-row items-center rounded-xl bg-background"
+                                    style={{
+                                      paddingHorizontal: 10,
+                                      paddingVertical: 6,
+                                      gap: 2,
+                                    }}
+                                  >
+                                    <TextInput
+                                      value={String(pct)}
+                                      onChangeText={(t) => {
+                                        const n = parseInt(
+                                          t.replace(/[^0-9]/g, ""),
+                                          10,
+                                        );
+                                        if (!isNaN(n) && n >= 0 && n <= 100)
+                                          setPercentage(member.id, n);
+                                      }}
+                                      keyboardType="number-pad"
+                                      maxLength={3}
+                                      style={{
+                                        fontFamily: "Outfit_600SemiBold",
+                                        fontSize: 14,
+                                        color: fgColor,
+                                        minWidth: 28,
+                                        textAlign: "right",
+                                      }}
+                                    />
+                                    <Text className="text-sm font-semibold text-muted">
+                                      %
+                                    </Text>
+                                  </View>
+                                ) : (
+                                  <View
+                                    className="flex-row items-center rounded-xl bg-background"
+                                    style={{
+                                      paddingHorizontal: 10,
+                                      paddingVertical: 6,
+                                      gap: 2,
+                                    }}
+                                  >
+                                    <Text className="text-sm text-muted">₹</Text>
+                                    <TextInput
+                                      value={String(Math.round(custom))}
+                                      onChangeText={(t) => {
+                                        const n = parseFloat(
+                                          t.replace(/[^0-9.]/g, ""),
+                                        );
+                                        if (!isNaN(n))
+                                          setCustomAmount(member.id, n);
+                                      }}
+                                      keyboardType="decimal-pad"
+                                      style={{
+                                        fontFamily: "Outfit_600SemiBold",
+                                        fontSize: 14,
+                                        color: fgColor,
+                                        minWidth: 40,
+                                        textAlign: "right",
+                                      }}
+                                    />
+                                  </View>
+                                )}
+
+                                <Text
+                                  className="text-sm font-bold text-foreground"
+                                  style={{ minWidth: 60, textAlign: "right" }}
+                                >
+                                  {displayAmount}
+                                </Text>
+                              </View>
+                              {!isLast && (
+                                <View className="mx-4 h-px bg-border" />
+                              )}
+                            </View>
+                          );
+                        })}
+                      </View>
+                    </Animated.View>
+                  )}
                 </Animated.View>
               )}
             </ScrollView>
 
-            {/* Sticky Bottom Bar */}
+            {/* ── Sticky bottom bar ── */}
             <View
               style={styles.stickyBar}
-              className="absolute bottom-0 left-0 right-0 border-t border-border bg-background px-4 pb-10 pt-4"
+              className="absolute bottom-0 left-0 right-0 bg-background px-5 pb-10 pt-4"
             >
-              <View className="mb-3 flex-row items-baseline gap-1">
-                <Text className="text-xs font-semibold uppercase tracking-widest text-muted">
-                  Total Expense
-                </Text>
-                <Text className="ml-2 text-2xl font-bold text-foreground">
-                  {formatRupee(totalAmount)}
-                </Text>
-              </View>
-
-              <View className="flex-row gap-3">
+              <Text
+                className="text-sm font-medium text-muted text-center mb-3"
+                numberOfLines={1}
+              >
+                {summaryText}
+              </Text>
+              <View className="flex-row" style={{ gap: 12 }}>
                 <Pressable
                   onPress={() => onOpenChange(false)}
                   className="flex-1 items-center rounded-full border border-border py-3.5 active:opacity-70"
                 >
-                  <Text className="text-base font-semibold text-foreground">Cancel</Text>
+                  <Text className="text-base font-semibold text-foreground">
+                    Cancel
+                  </Text>
                 </Pressable>
                 <Pressable
                   onPress={handleConfirm}
                   disabled={selectedMembers.length === 0}
                   className={
                     selectedMembers.length > 0
-                      ? "flex-1 items-center rounded-full py-3.5 active:opacity-80 bg-foreground"
-                      : "flex-1 items-center rounded-full py-3.5 active:opacity-80 bg-foreground/30"
+                      ? "items-center rounded-full py-3.5 bg-foreground active:opacity-80"
+                      : "items-center rounded-full py-3.5 bg-foreground/30"
                   }
-                  style={styles.confirmShadow}
+                  style={[{ flex: 2 }, styles.confirmShadow]}
                 >
                   <Text className="text-base font-semibold text-background">
                     Confirm Split
@@ -198,7 +405,6 @@ export function SplitConfigSheet({ isOpen, onOpenChange }: SplitConfigSheetProps
         </BottomSheet.Portal>
       </BottomSheet>
 
-      {/* Nested Group Selector */}
       <GroupSelectionSheet
         isOpen={isGroupSheetOpen}
         onOpenChange={setIsGroupSheetOpen}
@@ -221,7 +427,7 @@ const styles = StyleSheet.create({
   confirmShadow: {
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.18,
     shadowRadius: 8,
     elevation: 6,
   },

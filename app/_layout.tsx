@@ -62,11 +62,11 @@ export default function RootLayout() {
                 contentStyle: { backgroundColor: bgColor },
               }}
             >
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
               <Stack.Screen
                 name="(protected)"
                 options={{ headerShown: false }}
               />
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
               <Stack.Screen
                 name="modal"
                 options={{ presentation: "modal", title: "Modal" }}

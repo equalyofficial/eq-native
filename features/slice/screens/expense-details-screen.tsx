@@ -1,59 +1,109 @@
 import React, { useEffect, useState } from "react";
 import {
-  View, Text, Pressable, ScrollView, KeyboardAvoidingView,
-  Platform, Image, StyleSheet,
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Image,
+  StyleSheet,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useCSSVariable } from "uniwind";
-import Animated, { FadeIn } from "react-native-reanimated";
+import { useEffectiveColorScheme } from "@/hooks/use-effective-color-scheme";
 
 import { TabProfileButton } from "@/components/tab-profile-button";
 import { useSliceFlowStore } from "../hooks/use-slice-flow-store";
 import { mockGroups, getPlaceholders } from "../slice-flow.data";
+import { ALL_CATEGORIES } from "../components/category-ribbon";
 
 import { ExpenseSummaryHero } from "../components/expense-summary/expense-summary-hero";
 import { AnimatedPlaceholderInput } from "../components/expense-description/animated-placeholder-input";
-import { DateSelector } from "../components/split-config/date-selector";
+import { DatePickerSheet } from "../components/split-config/date-picker-sheet";
 import { SplitConfigSheet } from "../components/split-config/split-config-sheet";
 import { BillUploadSheet } from "../components/bill-upload/bill-upload-sheet";
+import { CategorySelectionSheet } from "../components/category-selection-sheet";
 
-// ─── helpers ────────────────────────────────────────────────────────────────
+// ─── Description + Category card ─────────────────────────────────────────────
 
-function formatRupee(value: number): string {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
-}
+function DescriptionCard({
+  value,
+  onChangeText,
+  placeholders,
+  category,
+  onCategoryPress,
+}: {
+  value: string;
+  onChangeText: (text: string) => void;
+  placeholders: string[];
+  category: string;
+  onCategoryPress: () => void;
+}) {
+  const categoryData = ALL_CATEGORIES.find((c) => c.id === category);
+  const mutedColor = String(useCSSVariable("--color-muted") ?? "#71717a");
 
-function SectionLabel({ label }: { label: string }) {
   return (
-    <Text className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted">
-      {label}
-    </Text>
+    <View className="rounded-2xl bg-card px-5 pt-5" style={styles.cardShadow}>
+      <Text className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+        What was it for?
+      </Text>
+      <AnimatedPlaceholderInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholders={placeholders}
+      />
+      <View className="mb-0 mt-5 h-px bg-border" />
+      <Pressable
+        onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          onCategoryPress();
+        }}
+        className="flex-row items-center justify-between py-4 active:opacity-70"
+      >
+        <View className="gap-1.5">
+          <Text className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+            Category
+          </Text>
+          <View className="flex-row items-center gap-2">
+            <Text className="text-base leading-none">
+              {categoryData?.icon ?? "📦"}
+            </Text>
+            <Text className="text-base font-semibold text-foreground">
+              {categoryData?.label ?? "Misc"}
+            </Text>
+          </View>
+        </View>
+        <Feather name="chevron-right" size={18} color={mutedColor} />
+      </Pressable>
+    </View>
   );
 }
 
 // ─── Split With card ─────────────────────────────────────────────────────────
 
 function SplitWithCard({ onPress }: { onPress: () => void }) {
-  const { amount, groupId, selectedMemberIds, splitType } = useSliceFlowStore();
+  const { groupId, selectedMemberIds, splitType } = useSliceFlowStore();
   const mutedColor = String(useCSSVariable("--color-muted") ?? "#71717a");
 
   const selectedGroup = mockGroups.find((g) => g.id === groupId) ?? null;
   const selectedMembers = (selectedGroup?.members ?? []).filter((m) =>
     selectedMemberIds.includes(m.id),
   );
-  const totalAmount = parseFloat(amount) || 0;
-  const perPerson = selectedMembers.length > 0 ? totalAmount / selectedMembers.length : 0;
-  const splitBadgeLabel =
-    splitType === "equal" ? "Equally" : splitType === "percentage" ? "By %" : "Custom";
   const hasSelection = selectedMembers.length > 0;
+
+  const splitLabel =
+    splitType === "equal"
+      ? "Equally Split"
+      : splitType === "percentage"
+        ? "By Percentage"
+        : "Custom Amounts";
 
   return (
     <Pressable
@@ -61,62 +111,57 @@ function SplitWithCard({ onPress }: { onPress: () => void }) {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onPress();
       }}
-      className="rounded-2xl border border-border bg-card px-4 py-4 active:opacity-80"
+      className="rounded-2xl bg-card px-5 py-5 active:opacity-80"
       style={styles.cardShadow}
     >
-      {!hasSelection ? (
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center gap-3">
-            <View className="h-10 w-10 items-center justify-center rounded-full bg-foreground/5">
-              <Feather name="users" size={18} color={mutedColor} />
-            </View>
-            <Text className="text-base text-muted">Tap to split expense</Text>
+      {/* Header row: label + people pill */}
+      <View className="mb-3 flex-row items-center justify-between">
+        <Text className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+          Split With
+        </Text>
+        {hasSelection && (
+          <View className="flex-row items-center gap-1.5 rounded-full border border-border px-3 py-1">
+            <Feather name="users" size={11} color={mutedColor} />
+            <Text className="text-xs font-semibold uppercase tracking-[0.1em] text-muted">
+              {selectedMembers.length} People
+            </Text>
           </View>
-          <Feather name="chevron-right" size={18} color={mutedColor} />
-        </View>
-      ) : (
-        <View className="gap-2">
-          <View className="flex-row items-center justify-between">
-            {/* Avatar stack */}
-            <View className="flex-row items-center">
-              {selectedMembers.slice(0, 4).map((member, i) => (
-                <Image
-                  key={member.id}
-                  source={{ uri: member.avatarUrl }}
-                  className="h-9 w-9 rounded-full border-2 border-background"
-                  style={{ marginLeft: i > 0 ? -10 : 0 }}
-                />
-              ))}
-              {selectedMembers.length > 4 && (
-                <View
-                  className="h-9 w-9 items-center justify-center rounded-full border-2 border-background bg-card"
-                  style={{ marginLeft: -10 }}
-                >
-                  <Text className="text-[10px] font-semibold text-muted">
-                    +{selectedMembers.length - 4}
-                  </Text>
-                </View>
-              )}
+        )}
+      </View>
+
+      {/* Split type label (big) */}
+      <Text
+        className={
+          hasSelection
+            ? "text-2xl font-bold tracking-tight text-foreground"
+            : "text-2xl font-bold tracking-tight text-muted"
+        }
+        style={{ opacity: hasSelection ? 1 : 0.4 }}
+      >
+        {hasSelection ? splitLabel : "Tap to split expense"}
+      </Text>
+
+      {/* Avatar row */}
+      {hasSelection && (
+        <View className="mt-4 flex-row items-center">
+          {selectedMembers.slice(0, 4).map((member, i) => (
+            <Image
+              key={member.id}
+              source={{ uri: member.avatarUrl }}
+              className="h-9 w-9 rounded-full border-2 border-card"
+              style={{ marginLeft: i > 0 ? -10 : 0 }}
+            />
+          ))}
+          {selectedMembers.length > 4 && (
+            <View
+              className="h-9 w-9 items-center justify-center rounded-full border-2 border-card bg-foreground/10"
+              style={{ marginLeft: -10 }}
+            >
+              <Text className="text-[10px] font-semibold text-muted">
+                +{selectedMembers.length - 4}
+              </Text>
             </View>
-            {/* Split badge + chevron */}
-            <View className="flex-row items-center gap-2">
-              <View className="rounded-full bg-foreground px-3 py-1">
-                <Text className="text-xs font-semibold uppercase text-background">
-                  {splitBadgeLabel}
-                </Text>
-              </View>
-              <Feather name="chevron-right" size={16} color={mutedColor} />
-            </View>
-          </View>
-          {/* Per-person amount */}
-          <Text className="text-xs text-muted">
-            {splitType === "equal"
-              ? `Per person ${formatRupee(perPerson)} · `
-              : splitType === "percentage"
-              ? "Split by percentage · "
-              : "Custom amounts · "}
-            {selectedMembers.length} member{selectedMembers.length !== 1 ? "s" : ""}
-          </Text>
+          )}
         </View>
       )}
     </Pressable>
@@ -135,7 +180,7 @@ function BillCard({ onPress }: { onPress: () => void }) {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onPress();
       }}
-      className="flex-1 rounded-2xl border border-border bg-card px-4 py-4 active:opacity-80"
+      className="flex-1 rounded-2xl bg-card px-4 py-4 active:opacity-80"
       style={styles.cardShadow}
     >
       {billImageUri ? (
@@ -147,12 +192,14 @@ function BillCard({ onPress }: { onPress: () => void }) {
               resizeMode="cover"
             />
           </View>
-          <Text className="text-xs font-semibold text-primary">Bill Added ✓</Text>
+          <Text className="text-xs font-semibold text-primary">
+            Bill Added ✓
+          </Text>
         </View>
       ) : (
         <View className="gap-1.5">
           <Feather name="file-text" size={20} color={mutedColor} />
-          <Text className="text-xs font-semibold uppercase tracking-widest text-muted">
+          <Text className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
             Bill
           </Text>
           <Text className="text-xs text-muted opacity-70">Optional</Text>
@@ -177,8 +224,8 @@ function DateCard({ date, onPress }: { date: Date; onPress: () => void }) {
   const label = isToday
     ? "Today"
     : isYesterday
-    ? "Yesterday"
-    : date.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+      ? "Yesterday"
+      : date.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 
   return (
     <Pressable
@@ -186,12 +233,12 @@ function DateCard({ date, onPress }: { date: Date; onPress: () => void }) {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onPress();
       }}
-      className="flex-1 rounded-2xl border border-border bg-card px-4 py-4 active:opacity-80"
+      className="flex-1 rounded-2xl bg-card px-4 py-4 active:opacity-80"
       style={styles.cardShadow}
     >
       <View className="gap-1.5">
         <Feather name="calendar" size={20} color={mutedColor} />
-        <Text className="text-xs font-semibold uppercase tracking-widest text-muted">
+        <Text className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
           Date
         </Text>
         <Text className="text-sm font-semibold text-foreground">{label}</Text>
@@ -209,14 +256,30 @@ export default function ExpenseDetailsScreen() {
   const bgColor = String(useCSSVariable("--color-background") ?? "#ffffff");
 
   const {
-    amount, category, description, setDescription,
-    date, setDate, groupId, selectedMemberIds,
-    resetFlow, initFlow,
+    amount,
+    category,
+    setCategory,
+    description,
+    setDescription,
+    date,
+    setDate,
+    groupId,
+    selectedMemberIds,
+    resetFlow,
+    initFlow,
   } = useSliceFlowStore();
 
   const [isSplitSheetOpen, setIsSplitSheetOpen] = useState(false);
   const [isBillSheetOpen, setIsBillSheetOpen] = useState(false);
-  const [isDateExpanded, setIsDateExpanded] = useState(false);
+  const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
+  const [isDateSheetOpen, setIsDateSheetOpen] = useState(false);
+
+  const colorScheme = useEffectiveColorScheme();
+  const isAnySheetOpen =
+    isSplitSheetOpen ||
+    isBillSheetOpen ||
+    isCategorySheetOpen ||
+    isDateSheetOpen;
 
   useEffect(() => {
     if (params.amount && params.category) {
@@ -225,7 +288,9 @@ export default function ExpenseDetailsScreen() {
   }, []);
 
   const isCTAEnabled =
-    description.trim().length > 0 && groupId !== null && selectedMemberIds.length > 0;
+    description.trim().length > 0 &&
+    groupId !== null &&
+    selectedMemberIds.length > 0;
 
   const handleCreateExpense = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -237,7 +302,10 @@ export default function ExpenseDetailsScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "transparent" }}>
+      <SafeAreaView
+        edges={["top"]}
+        style={{ flex: 1, backgroundColor: "transparent" }}
+      >
         {/* Header */}
         <View className="flex-row items-center justify-between px-5 pb-2 pt-3">
           <Pressable
@@ -250,7 +318,9 @@ export default function ExpenseDetailsScreen() {
           >
             <Feather name="arrow-left" size={22} color={fgColor} />
           </Pressable>
-          <Text className="text-lg font-semibold text-foreground">Expense Details</Text>
+          <Text className="text-xl font-bold tracking-tight text-foreground">
+            Expense Details
+          </Text>
           <TabProfileButton />
         </View>
 
@@ -262,63 +332,41 @@ export default function ExpenseDetailsScreen() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 40 }}
             keyboardShouldPersistTaps="handled"
+            style={{ flex: 1 }}
           >
             {/* Amount Hero */}
-            <ExpenseSummaryHero amount={amount} category={category} />
+            <ExpenseSummaryHero amount={amount} />
 
             {/* Divider */}
-            <View className="mx-6 mb-6 h-px bg-border" />
+            <View className="mx-5 mb-5 h-px bg-border" />
 
-            <View className="gap-5 px-5">
-              {/* Description */}
-              <View>
-                <SectionLabel label="What was it for?" />
-                <AnimatedPlaceholderInput
-                  value={description}
-                  onChangeText={setDescription}
-                  placeholders={placeholders}
-                />
-              </View>
+            <View className="gap-4 px-5">
+              {/* Description + Category combined card */}
+              <DescriptionCard
+                value={description}
+                onChangeText={setDescription}
+                placeholders={placeholders}
+                category={category}
+                onCategoryPress={() => setIsCategorySheetOpen(true)}
+              />
 
               {/* Split With */}
-              <View>
-                <SectionLabel label="Split With" />
-                <SplitWithCard onPress={() => setIsSplitSheetOpen(true)} />
-              </View>
+              <SplitWithCard onPress={() => setIsSplitSheetOpen(true)} />
 
               {/* Date + Bill row */}
               <View className="flex-row gap-3">
-                <View className="flex-1">
-                  <SectionLabel label="Date" />
-                  <DateCard date={date} onPress={() => setIsDateExpanded((v) => !v)} />
-                </View>
-                <View className="flex-1">
-                  <SectionLabel label="Bill" />
-                  <BillCard onPress={() => setIsBillSheetOpen(true)} />
-                </View>
+                <DateCard
+                  date={date}
+                  onPress={() => setIsDateSheetOpen(true)}
+                />
+                <BillCard onPress={() => setIsBillSheetOpen(true)} />
               </View>
-
-              {/* Inline date selector — expands when DateCard is tapped */}
-              {isDateExpanded && (
-                <Animated.View
-                  entering={FadeIn.duration(200)}
-                  className="rounded-2xl border border-border bg-card px-4 py-4"
-                >
-                  <DateSelector
-                    date={date}
-                    onDateChange={(d) => {
-                      setDate(d);
-                      setIsDateExpanded(false);
-                    }}
-                  />
-                </Animated.View>
-              )}
             </View>
           </ScrollView>
 
           {/* CTA */}
           <View
-            className="px-5 pt-3"
+            className="bg-background px-5 pt-3"
             style={{ paddingBottom: Math.max(insets.bottom, 16) + 8 }}
           >
             <View style={[styles.ctaShadow, { shadowColor: fgColor }]}>
@@ -349,8 +397,26 @@ export default function ExpenseDetailsScreen() {
         </KeyboardAvoidingView>
 
         {/* Sheets */}
-        <SplitConfigSheet isOpen={isSplitSheetOpen} onOpenChange={setIsSplitSheetOpen} />
-        <BillUploadSheet isOpen={isBillSheetOpen} onOpenChange={setIsBillSheetOpen} />
+        <SplitConfigSheet
+          isOpen={isSplitSheetOpen}
+          onOpenChange={setIsSplitSheetOpen}
+        />
+        <BillUploadSheet
+          isOpen={isBillSheetOpen}
+          onOpenChange={setIsBillSheetOpen}
+        />
+        <CategorySelectionSheet
+          isOpen={isCategorySheetOpen}
+          onOpenChange={setIsCategorySheetOpen}
+          selectedCategory={category}
+          onSelect={setCategory}
+        />
+        <DatePickerSheet
+          isOpen={isDateSheetOpen}
+          onOpenChange={setIsDateSheetOpen}
+          date={date}
+          onDateChange={setDate}
+        />
       </SafeAreaView>
     </View>
   );
@@ -360,8 +426,8 @@ const styles = StyleSheet.create({
   cardShadow: {
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
     elevation: 3,
   },
   ctaShadow: {

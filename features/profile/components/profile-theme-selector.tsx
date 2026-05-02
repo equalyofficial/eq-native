@@ -7,13 +7,13 @@ import Animated, {
   clamp,
   interpolate,
   interpolateColor,
-  runOnJS,
   type SharedValue,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
   withTiming,
 } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 import { Uniwind, useUniwind, useCSSVariable } from "uniwind";
 import type { ProfileThemeOption } from "../profile.data";
 import { useEffectiveColorScheme } from "@/hooks/use-effective-color-scheme";
@@ -194,7 +194,7 @@ export function ProfileThemeSelector() {
       );
 
       progress.value = withSpring(nextIndex, SPRING_CONFIG);
-      runOnJS(setThemeByIndex)(nextIndex);
+      scheduleOnRN(setThemeByIndex, nextIndex);
     });
 
   const indicatorStyle = useAnimatedStyle(() => {

@@ -3,7 +3,6 @@ import { View, Text, Pressable, Image, StyleSheet } from "react-native";
 import { BottomSheet } from "heroui-native";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import * as ImagePicker from "expo-image-picker";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { useCSSVariable } from "uniwind";
 import { useSliceFlowStore } from "../../hooks/use-slice-flow-store";
@@ -19,23 +18,11 @@ export function BillUploadSheet({ isOpen, onOpenChange }: BillUploadSheetProps) 
   const bgColor = String(useCSSVariable("--color-background") ?? "#ffffff");
   const mutedColor = String(useCSSVariable("--color-muted") ?? "#71717a");
 
-  const pickImage = async (fromCamera: boolean) => {
-    if (fromCamera) {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== "granted") return;
-    } else {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") return;
-    }
+  const pickImage = (_fromCamera: boolean) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    const result = fromCamera
-      ? await ImagePicker.launchCameraAsync({ quality: 0.85, allowsEditing: true })
-      : await ImagePicker.launchImageLibraryAsync({ quality: 0.85, allowsEditing: true });
-
-    if (!result.canceled && result.assets[0]) {
-      setBillImage(result.assets[0].uri);
-      onOpenChange(false);
-    }
+    // TODO: replace with expo-image-picker in a custom dev build
+    setBillImage(`https://picsum.photos/600/400?random=${Date.now()}`);
+    onOpenChange(false);
   };
 
   const handleRemove = () => {
@@ -46,9 +33,9 @@ export function BillUploadSheet({ isOpen, onOpenChange }: BillUploadSheetProps) 
   return (
     <BottomSheet isOpen={isOpen} onOpenChange={onOpenChange}>
       <BottomSheet.Portal>
-        <BottomSheet.Overlay />
+        <BottomSheet.Overlay className="bg-black/30" />
         <BottomSheet.Content
-          className="bg-background"
+          backgroundClassName="rounded-t-[2rem] bg-background"
           contentContainerClassName="pt-2 pb-0"
         >
           {/* Header */}

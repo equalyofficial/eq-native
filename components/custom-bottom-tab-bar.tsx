@@ -238,16 +238,16 @@ export function CustomBottomTabBar({ state, navigation }: BottomTabBarProps) {
         "rgba(255,255,255,0.9)",
         "rgba(255,255,255,0.96)",
       ] as const);
-  const centerButtonColor = String(fgColorSV.value);
-  const centerIconColor = String(bgColorSV.value);
-  const inactiveIconColor = String(fgColorSV.value);
+  const centerButtonColor = String(fgColor);
+  const centerIconColor = String(bgColor);
+  const inactiveIconColor = String(fgColor);
   const inactiveBubbleColor = isDark
     ? "rgba(255,255,255,0.08)"
     : "rgba(9,9,11,0.08)";
   const centerHaloColor = isDark
     ? "rgba(255,255,255,0.12)"
     : "rgba(9,9,11,0.08)";
-  const labelColor = String(fgColorSV.value);
+  const labelColor = String(fgColor);
 
   useEffect(() => {
     focusPosition.value = withSpring(activeVisibleIndex, SPRING_CONFIG);

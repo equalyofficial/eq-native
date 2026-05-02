@@ -1,9 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from "react-native-reanimated";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { TabProfileButton } from "@/components/tab-profile-button";
 
 import { AmountBillboard } from "../components/amount-billboard";
@@ -12,6 +18,7 @@ import { PrecisionNumpad } from "../components/precision-numpad";
 import { SliceCTAButton } from "../components/slice-cta-button";
 import { CategorySelectionSheet } from "../components/category-selection-sheet";
 import { useSliceInput } from "../hooks/use-slice-input";
+import { useSliceCTAStore } from "../hooks/use-slice-cta-store";
 
 export default function SliceScreen() {
   const insets = useSafeAreaInsets();
@@ -23,6 +30,29 @@ export default function SliceScreen() {
 
   const [category, setCategory] = useState("food_and_dining");
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  const { activate, deactivate } = useSliceCTAStore();
+  const hasAmount = amount !== "0";
+
+  useEffect(() => {
+    if (hasAmount) {
+      activate(() =>
+        router.push({
+          pathname: "/(protected)/expense-details",
+          params: { amount: amount.replace(/,/g, ""), category },
+        }),
+      );
+    } else {
+      deactivate();
+    }
+    return () => deactivate();
+  }, [hasAmount, amount, category, activate, deactivate]);
+
+  const ghostOpacity = useSharedValue(1);
+  useEffect(() => {
+    ghostOpacity.value = withTiming(hasAmount ? 0 : 1, { duration: 140 });
+  }, [hasAmount, ghostOpacity]);
+  const ghostStyle = useAnimatedStyle(() => ({ opacity: ghostOpacity.value }));
 
   // Position the button in the transparent upper region of the tab bar gradient
   const bottomPadding = insets.bottom + 112;
@@ -59,12 +89,13 @@ export default function SliceScreen() {
               onDelete={deleteLast}
               onClear={clear}
             />
-            <SliceCTAButton
-              isEnabled={amount !== "0"}
-              onPress={() =>
-                console.log("Proceeding to details with:", { amount, category })
-              }
-            />
+            {/* Ghost button: fades (dim) under gradient when no amount; fades out when overlay is active */}
+            <Animated.View
+              style={ghostStyle}
+              pointerEvents={hasAmount ? "none" : "auto"}
+            >
+              <SliceCTAButton isEnabled={false} onPress={() => {}} />
+            </Animated.View>
           </View>
         </View>
       </SafeAreaView>

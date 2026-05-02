@@ -4,12 +4,8 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  withSequence,
-  runOnJS,
   Easing,
 } from "react-native-reanimated";
-import { useCSSVariable } from "uniwind";
-
 interface AnimatedPlaceholderInputProps {
   value: string;
   onChangeText: (text: string) => void;
@@ -23,9 +19,6 @@ export function AnimatedPlaceholderInput({
   placeholders,
   cycleIntervalMs = 2500,
 }: AnimatedPlaceholderInputProps) {
-  const mutedColor = useCSSVariable("--color-muted");
-  const fgColor = useCSSVariable("--color-foreground");
-  const borderColor = useCSSVariable("--color-border");
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [displayedPlaceholder, setDisplayedPlaceholder] = useState(
@@ -68,8 +61,9 @@ export function AnimatedPlaceholderInput({
       });
 
       // After fade-out, update text and fade in
+      // Already on JS thread — call directly, no runOnJS needed
       setTimeout(() => {
-        runOnJS(advancePlaceholder)();
+        advancePlaceholder();
       }, 220);
     }, cycleIntervalMs);
 
@@ -105,59 +99,32 @@ export function AnimatedPlaceholderInput({
   const showCustomPlaceholder = value.length === 0;
 
   return (
-    <View className="gap-3">
-      <Text className="text-2xl font-bold text-foreground">
-        What was this for?
-      </Text>
-      <Text className="text-base text-muted">
-        Add a short description
-      </Text>
-
-      <View className="mt-2">
-        <View
-          className={isFocused ? "rounded-2xl border border-foreground bg-card px-5 py-4" : "rounded-2xl border border-border bg-card px-5 py-4"}
+    <View style={{ minHeight: 48 }}>
+      {showCustomPlaceholder && (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            { position: "absolute", left: 0, top: 0, bottom: 0, justifyContent: "center" },
+            placeholderAnimatedStyle,
+          ]}
         >
-          {/* Custom animated placeholder — positioned behind the TextInput */}
-          {showCustomPlaceholder && (
-            <Animated.View
-              pointerEvents="none"
-              style={[
-                {
-                  position: "absolute",
-                  left: 20,
-                  top: 0,
-                  bottom: 0,
-                  justifyContent: "center",
-                },
-                placeholderAnimatedStyle,
-              ]}
-            >
-              <Text
-                className="text-lg text-muted"
-                style={{ opacity: 0.6 }}
-              >
-                {displayedPlaceholder}
-              </Text>
-            </Animated.View>
-          )}
-
-          <TextInput
-            ref={inputRef}
-            value={value}
-            onChangeText={onChangeText}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            className="text-lg text-foreground"
-            style={{
-              fontFamily: "Outfit_400Regular",
-              minHeight: 24,
-            }}
-            placeholderTextColor="transparent"
-            returnKeyType="done"
-            autoCorrect={false}
-          />
-        </View>
-      </View>
+          <Text className="text-3xl font-bold text-foreground" style={{ opacity: 0.25 }}>
+            {displayedPlaceholder}
+          </Text>
+        </Animated.View>
+      )}
+      <TextInput
+        ref={inputRef}
+        value={value}
+        onChangeText={onChangeText}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        className="text-3xl font-bold text-foreground"
+        style={{ fontFamily: "Outfit_700Bold", minHeight: 48 }}
+        placeholderTextColor="transparent"
+        returnKeyType="done"
+        autoCorrect={false}
+      />
     </View>
   );
 }

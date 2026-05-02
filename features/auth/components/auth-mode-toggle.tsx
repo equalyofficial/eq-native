@@ -5,11 +5,11 @@ import Animated, {
   Extrapolation,
   clamp,
   interpolate,
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 import { useCSSVariable } from "uniwind";
 
 type Option = {
@@ -66,7 +66,7 @@ export function AuthModeToggle({
       );
       progress.value = withTiming(nextIndex, { duration: 200 });
       isDragging.value = withTiming(0, { duration: 100 });
-      runOnJS(onChange)(options[nextIndex].value);
+      scheduleOnRN(onChange, options[nextIndex].value);
     });
 
   const indicatorStyle = useAnimatedStyle(() => {
