@@ -5,6 +5,7 @@ export interface SegmentData extends SpendingCategory {
   color: string;
   startAngle: number;
   endAngle: number;
+  /** Indicates if segment represents a "more/others" placeholder for 20+ categories */
   isMore?: boolean;
 }
 

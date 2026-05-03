@@ -45,20 +45,24 @@ export function getSegmentColor(
 ): string {
   const key = categoryLabel
     .toLowerCase()
-    .replace(/[^a-z]/g, "") as SegmentColorKey;
+    .replace(/[^a-z]/g, "");
 
   const colorMap =
     colorScheme === "dark"
       ? DARK_SEGMENT_COLORS
       : LIGHT_SEGMENT_COLORS;
 
-  // Default fallback
-  if (key === "others" || !key) return colorMap.others;
-  return colorMap[key] || colorMap.others;
+  // Validate key exists in color map, otherwise use default
+  if (!key || !(key in LIGHT_SEGMENT_COLORS)) {
+    return colorMap.others;
+  }
+
+  return colorMap[key as SegmentColorKey];
 }
 
 /**
  * Convert polar coordinates to SVG x,y
+ * Note: SVG coordinate system starts at 3 o'clock (0°), we want 12 o'clock
  */
 export function polarToCartesian(
   centerX: number,
@@ -66,7 +70,8 @@ export function polarToCartesian(
   radius: number,
   angleInDegrees: number
 ): { x: number; y: number } {
-  const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
+  const SVG_ANGLE_OFFSET = -90; // Adjust from 3 o'clock start to 12 o'clock
+  const angleInRadians = ((angleInDegrees + SVG_ANGLE_OFFSET) * Math.PI) / 180.0;
   return {
     x: centerX + radius * Math.cos(angleInRadians),
     y: centerY + radius * Math.sin(angleInRadians),
@@ -127,16 +132,27 @@ export function calculateSegmentAngles(
   segments: { numericAmount: number }[]
 ): { startAngle: number; endAngle: number }[] {
   const total = segments.reduce((sum, s) => sum + s.numericAmount, 0);
+
+  // Guard against zero total or empty segments
+  if (total <= 0 || segments.length === 0) {
+    return [];
+  }
+
   const result: { startAngle: number; endAngle: number }[] = [];
   let currentAngle = 0;
 
-  for (const segment of segments) {
+  for (let i = 0; i < segments.length; i++) {
+    const segment = segments[i];
+    const isLastSegment = i === segments.length - 1;
     const sliceAngle = (segment.numericAmount / total) * 360;
+    // Normalize last segment to exactly 360 to account for floating-point rounding
+    const endAngle = isLastSegment ? 360 : currentAngle + sliceAngle;
+
     result.push({
       startAngle: currentAngle,
-      endAngle: currentAngle + sliceAngle,
+      endAngle,
     });
-    currentAngle += sliceAngle;
+    currentAngle = endAngle;
   }
 
   return result;
