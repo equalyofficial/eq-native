@@ -1,4 +1,4 @@
-import type { SpendingCategory } from "../home.data";
+import type { SpendingCategory } from "../../home.data";
 
 export interface SegmentData extends SpendingCategory {
   percentage: number;
