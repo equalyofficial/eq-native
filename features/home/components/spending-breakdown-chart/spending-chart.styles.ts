@@ -3,6 +3,10 @@ export const DOUGHNUT_DIAMETER = 220;
 export const DOUGHNUT_RADIUS = DOUGHNUT_DIAMETER / 2;
 export const INNER_RADIUS = 80;
 export const STROKE_WIDTH = 40;
+// Stroke-based ring rendering
+export const MID_RADIUS = (DOUGHNUT_RADIUS + INNER_RADIUS) / 2; // 95 — center of the ring
+export const RING_STROKE_WIDTH = 22; // ring thickness (thinner = less prominent rounded caps)
+export const RING_CIRCUMFERENCE = 2 * Math.PI * MID_RADIUS; // ~596.9
 export const CENTER_X = DOUGHNUT_RADIUS;
 export const CENTER_Y = DOUGHNUT_RADIUS;
 
@@ -16,48 +20,21 @@ export const THEME_TRANSITION_DURATION = 300;
 export const ENTRY_SPRING = { damping: 18, stiffness: 180, mass: 1 };
 export const TAP_SPRING = { damping: 14, stiffness: 200, mass: 1 };
 
-// Segment colors (light mode)
-const LIGHT_SEGMENT_COLORS = {
-  food: "#10B981",      // Emerald
-  travel: "#6366F1",    // Indigo
-  entertainment: "#D97706", // Amber (boosted for contrast)
-  utilities: "#64748B", // Slate
-  others: "#9CA3AF",    // Muted gray
-} as const;
+// Selection pop — segment radius grows outward (not inward into the hole)
+export const SELECTED_RADIUS_OFFSET = 4;
+// Tint overlay intensity when selected (0–1 brightness lift)
+export const SELECTED_COLOR_LIGHTEN = 0.12;
+// Gradient top-stop lighten amount for 3D bevel
+export const GRADIENT_TOP_LIGHTEN = 0.18;
 
-// Segment colors (dark mode - desaturated by 15%)
-const DARK_SEGMENT_COLORS = {
-  food: "#059669",      // Emerald (darker)
-  travel: "#4F46E5",    // Indigo (darker)
-  entertainment: "#B45309", // Amber (desaturated)
-  utilities: "#475569", // Slate (darker)
-  others: "#6B7280",    // Muted (lighter for visibility)
-} as const;
-
-export type SegmentColorKey = keyof typeof LIGHT_SEGMENT_COLORS;
-
-/**
- * Get segment color based on category and theme
- */
-export function getSegmentColor(
-  categoryLabel: string,
-  colorScheme: "light" | "dark"
-): string {
-  const key = categoryLabel
-    .toLowerCase()
-    .replace(/[^a-z]/g, "");
-
-  const colorMap =
-    colorScheme === "dark"
-      ? DARK_SEGMENT_COLORS
-      : LIGHT_SEGMENT_COLORS;
-
-  // Validate key exists in color map, otherwise use default
-  if (!key || !(key in LIGHT_SEGMENT_COLORS)) {
-    return colorMap.others;
-  }
-
-  return colorMap[key as SegmentColorKey];
+// Lighten (positive) or darken (negative) a hex color by shifting each channel.
+export function shadeHex(hex: string, amount: number): string {
+  const n = parseInt(hex.replace("#", ""), 16);
+  const clamp = (v: number) => Math.max(0, Math.min(255, v));
+  const r = clamp(((n >> 16) & 0xff) + Math.round(amount * 255));
+  const g = clamp(((n >> 8) & 0xff) + Math.round(amount * 255));
+  const b = clamp((n & 0xff) + Math.round(amount * 255));
+  return `#${(((r << 16) | (g << 8) | b) >>> 0).toString(16).padStart(6, "0")}`;
 }
 
 /**

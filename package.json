@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
-    "start:wsl": "REACT_NATIVE_PACKAGER_HOSTNAME=192.168.1.13 bun start -c",
+    "start:wsl": "REACT_NATIVE_PACKAGER_HOSTNAME=192.168.1.16 bun start -c",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",

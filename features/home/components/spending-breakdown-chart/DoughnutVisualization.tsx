@@ -1,126 +1,192 @@
 import React, { useEffect } from "react";
-import Svg, { Circle, Path } from "react-native-svg";
+import Svg, { Circle } from "react-native-svg";
 import Animated, {
   useAnimatedProps,
+  useAnimatedStyle,
   useSharedValue,
   withDelay,
   withSpring,
   withTiming,
-  type SharedValue,
 } from "react-native-reanimated";
-import { Text, View } from "react-native";
-import { useEffectiveColorScheme } from "@/hooks/use-effective-color-scheme";
+import { Pressable, Text, View } from "react-native";
 
 import {
   DOUGHNUT_DIAMETER,
   DOUGHNUT_RADIUS,
   INNER_RADIUS,
-  STROKE_WIDTH,
   CENTER_X,
   CENTER_Y,
   ENTRY_DURATION,
   STAGGER_DELAY,
-  ENTRY_SPRING,
   TAP_SPRING,
   TAP_DURATION,
-  describeArc,
-  calculateSegmentAngles,
-  getSegmentColor,
+  MID_RADIUS,
+  RING_STROKE_WIDTH,
+  RING_CIRCUMFERENCE,
 } from "./spending-chart.styles";
 import type { SegmentData, DoughnutProps } from "./types";
 
-const AnimatedSvg = Animated.createAnimatedComponent(Svg);
-const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-interface SegmentState {
-  scale: SharedValue<number>;
-  opacity: SharedValue<number>;
-  glowOpacity: SharedValue<number>;
-}
+// Cap extension = strokeWidth/2 (11px) = 6.6°. Gap = 2*(TRIM - 6.6°).
+// SEGMENT_TRIM=7 → gap ≈ 1.3px — subtle line between rounded caps, not chunky.
+const SEGMENT_TRIM = 7;
+const SELECTED_STROKE_GROWTH = 6;
 
-// Segment renderer component that manages its own animation state
 function SegmentItem({
   segment,
   index,
-  angle,
-  colorScheme,
   isSelected,
-  onSegmentTap,
 }: {
   segment: SegmentData;
   index: number;
-  angle: { startAngle: number; endAngle: number };
-  colorScheme: "light" | "dark";
   isSelected: boolean;
-  onSegmentTap: (id: string) => void;
 }) {
-  const scale = useSharedValue(0);
   const opacity = useSharedValue(0);
   const glowOpacity = useSharedValue(0);
+  const strokeAnim = useSharedValue(RING_STROKE_WIDTH);
 
-  // Entry animation
+  const segmentAngle = segment.endAngle - segment.startAngle;
+  const arcLength = Math.max(
+    0,
+    ((segmentAngle - SEGMENT_TRIM * 2) / 360) * RING_CIRCUMFERENCE,
+  );
+  const rotation = segment.startAngle + SEGMENT_TRIM - 90;
+
   useEffect(() => {
-    scale.value = withDelay(index * STAGGER_DELAY, withSpring(1, ENTRY_SPRING));
     opacity.value = withDelay(
       index * STAGGER_DELAY,
-      withTiming(1, { duration: ENTRY_DURATION })
+      withTiming(1, { duration: ENTRY_DURATION }),
     );
-  }, [index, scale, opacity]);
+  }, [index, opacity]);
 
-  // Tap feedback animation
   useEffect(() => {
-    if (isSelected) {
-      scale.value = withSpring(1.1, TAP_SPRING);
-      glowOpacity.value = withTiming(0.3, { duration: TAP_DURATION });
-    } else {
-      scale.value = withSpring(1, TAP_SPRING);
-      glowOpacity.value = withTiming(0, { duration: TAP_DURATION });
-    }
-  }, [isSelected, scale, glowOpacity]);
+    strokeAnim.value = withSpring(
+      isSelected ? RING_STROKE_WIDTH + SELECTED_STROKE_GROWTH : RING_STROKE_WIDTH,
+      TAP_SPRING,
+    );
+    glowOpacity.value = withTiming(isSelected ? 0.22 : 0, { duration: TAP_DURATION });
+  }, [isSelected, strokeAnim, glowOpacity]);
 
-  const segmentColor = getSegmentColor(segment.label, colorScheme);
+  const segmentColor = segment.color;
 
-  // Animated props for glow circle
-  const glowAnimatedProps = useAnimatedProps(() => ({
+  const mainProps = useAnimatedProps(() => ({
+    opacity: opacity.value,
+    strokeWidth: strokeAnim.value,
+  }));
+
+  const glowProps = useAnimatedProps(() => ({
     opacity: glowOpacity.value,
   }));
 
-  // Animated props for segment path
-  const pathAnimatedProps = useAnimatedProps(() => ({
-    opacity: opacity.value,
-  }));
+  return (
+    <>
+      <AnimatedCircle
+        cx={CENTER_X}
+        cy={CENTER_Y}
+        r={MID_RADIUS}
+        fill="none"
+        stroke={segmentColor}
+        strokeWidth={RING_STROKE_WIDTH + 22}
+        strokeLinecap="round"
+        strokeDasharray={`${arcLength} ${RING_CIRCUMFERENCE}`}
+        transform={`rotate(${rotation} ${CENTER_X} ${CENTER_Y})`}
+        animatedProps={glowProps}
+      />
+      <AnimatedCircle
+        cx={CENTER_X}
+        cy={CENTER_Y}
+        r={MID_RADIUS}
+        fill="none"
+        stroke={segmentColor}
+        strokeLinecap="round"
+        strokeDasharray={`${arcLength} ${RING_CIRCUMFERENCE}`}
+        transform={`rotate(${rotation} ${CENTER_X} ${CENTER_Y})`}
+        animatedProps={mainProps}
+      />
+    </>
+  );
+}
+
+function CenterContent({
+  totalAmount,
+  period,
+  selectedSegment,
+}: {
+  totalAmount: string;
+  period: string;
+  selectedSegment: SegmentData | null;
+}) {
+  const totalOpacity = useSharedValue(1);
+  const detailOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    if (selectedSegment) {
+      totalOpacity.value = withTiming(0, { duration: 180 });
+      detailOpacity.value = withTiming(1, { duration: 220 });
+    } else {
+      totalOpacity.value = withTiming(1, { duration: 220 });
+      detailOpacity.value = withTiming(0, { duration: 180 });
+    }
+  }, [selectedSegment, totalOpacity, detailOpacity]);
+
+  const totalStyle = useAnimatedStyle(() => ({ opacity: totalOpacity.value }));
+  const detailStyle = useAnimatedStyle(() => ({ opacity: detailOpacity.value }));
 
   return (
-    <React.Fragment key={segment.id}>
-      {/* Glow (background) */}
-      {isSelected && (
-        <AnimatedCircle
-          cx={CENTER_X}
-          cy={CENTER_Y}
-          r={DOUGHNUT_RADIUS}
-          fill="none"
-          stroke={segmentColor}
-          strokeWidth={STROKE_WIDTH + 10}
-          animatedProps={glowAnimatedProps}
-        />
-      )}
+    <View
+      className="absolute items-center justify-center rounded-full bg-background"
+      style={{
+        width: INNER_RADIUS * 2,
+        height: INNER_RADIUS * 2,
+        top: DOUGHNUT_RADIUS - INNER_RADIUS,
+        left: DOUGHNUT_RADIUS - INNER_RADIUS,
+      }}
+    >
+      <Animated.View
+        style={[totalStyle, { position: "absolute", alignItems: "center" }]}
+        pointerEvents={selectedSegment ? "none" : "auto"}
+      >
+        <Text className="text-[9px] font-semibold uppercase tracking-[0.22em] text-muted">
+          TOTAL
+        </Text>
+        <Text className="text-xl font-bold tracking-tight text-foreground">
+          {totalAmount}
+        </Text>
+        <Text className="mt-0.5 text-[9px] font-medium uppercase tracking-wide text-muted">
+          {period}
+        </Text>
+      </Animated.View>
 
-      {/* Segment path */}
-      <AnimatedPath
-        d={describeArc(
-          CENTER_X,
-          CENTER_Y,
-          DOUGHNUT_RADIUS,
-          INNER_RADIUS,
-          angle.startAngle,
-          angle.endAngle
+      <Animated.View
+        style={[detailStyle, { position: "absolute", alignItems: "center" }]}
+        pointerEvents={selectedSegment ? "auto" : "none"}
+      >
+        {selectedSegment && (
+          <>
+            <Text style={{ fontSize: 20, lineHeight: 26 }}>
+              {selectedSegment.icon}
+            </Text>
+            <Text
+              className="mt-0.5 text-[11px] font-semibold text-foreground"
+              numberOfLines={1}
+              style={{ maxWidth: INNER_RADIUS * 1.6 }}
+            >
+              {selectedSegment.label}
+            </Text>
+            <Text
+              className="text-sm font-bold tracking-tight"
+              style={{ color: selectedSegment.color }}
+            >
+              {selectedSegment.amount}
+            </Text>
+            <Text className="text-[9px] font-medium text-muted">
+              {selectedSegment.percentage.toFixed(0)}%
+            </Text>
+          </>
         )}
-        fill={segmentColor}
-        animatedProps={pathAnimatedProps}
-        onPress={() => onSegmentTap(segment.id)}
-      />
-    </React.Fragment>
+      </Animated.View>
+    </View>
   );
 }
 
@@ -131,51 +197,67 @@ export function DoughnutVisualization({
   selectedSegmentId,
   onSegmentTap,
 }: DoughnutProps) {
-  const colorScheme = useEffectiveColorScheme();
+  const selectedSegment = selectedSegmentId
+    ? (segments.find((s) => s.id === selectedSegmentId) ?? null)
+    : null;
 
-  // Calculate segment angles
-  const angles = calculateSegmentAngles(segments);
+  // Coordinate-based segment detection — avoids the strokeDasharray invisible-area bug
+  // where the full circle stroke receives touches even outside the visible arc.
+  const handleRingPress = (evt: any) => {
+    const { locationX, locationY } = evt.nativeEvent;
+    const dx = locationX - CENTER_X;
+    const dy = locationY - CENTER_Y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    // Only respond to taps within the ring band
+    if (dist < INNER_RADIUS || dist > DOUGHNUT_RADIUS) return;
+
+    // atan2 → degrees, rotate so 12 o'clock = 0°, normalise to [0, 360)
+    let angle = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
+    if (angle < 0) angle += 360;
+
+    const tapped = segments.find(
+      (seg) => angle >= seg.startAngle && angle < seg.endAngle,
+    );
+    if (tapped) onSegmentTap(tapped.id);
+  };
 
   return (
     <View className="items-center py-6">
-      {/* SVG Doughnut */}
-      <View style={{ position: "relative", width: DOUGHNUT_DIAMETER, height: DOUGHNUT_DIAMETER }}>
-        <AnimatedSvg
-          width={DOUGHNUT_DIAMETER}
-          height={DOUGHNUT_DIAMETER}
-          viewBox={`0 0 ${DOUGHNUT_DIAMETER} ${DOUGHNUT_DIAMETER}`}
+      <View
+        style={{
+          position: "relative",
+          width: DOUGHNUT_DIAMETER,
+          height: DOUGHNUT_DIAMETER,
+        }}
+      >
+        {/* Single Pressable over the full SVG — coordinate math picks the right segment */}
+        <Pressable
+          onPress={handleRingPress}
+          style={{ width: DOUGHNUT_DIAMETER, height: DOUGHNUT_DIAMETER }}
         >
-          {/* Render segments */}
-          {segments.map((segment, index) => (
-            <SegmentItem
-              key={segment.id}
-              segment={segment}
-              index={index}
-              angle={angles[index]}
-              colorScheme={colorScheme}
-              isSelected={selectedSegmentId === segment.id}
-              onSegmentTap={onSegmentTap}
-            />
-          ))}
-        </AnimatedSvg>
+          <Svg
+            width={DOUGHNUT_DIAMETER}
+            height={DOUGHNUT_DIAMETER}
+            viewBox={`0 0 ${DOUGHNUT_DIAMETER} ${DOUGHNUT_DIAMETER}`}
+          >
+            {segments.map((segment, index) => (
+              <SegmentItem
+                key={segment.id}
+                segment={segment}
+                index={index}
+                isSelected={selectedSegmentId === segment.id}
+              />
+            ))}
+          </Svg>
+        </Pressable>
 
-        {/* Center circle with total spending */}
-        <View
-          className="absolute items-center justify-center rounded-full bg-background"
-          style={{
-            width: INNER_RADIUS * 2,
-            height: INNER_RADIUS * 2,
-            top: DOUGHNUT_RADIUS - INNER_RADIUS,
-            left: DOUGHNUT_RADIUS - INNER_RADIUS,
-          }}
-        >
-          <Text className="text-2xl font-bold text-foreground">
-            {totalAmount}
-          </Text>
-          <Text className="mt-0.5 text-xs font-medium text-muted uppercase tracking-wide">
-            {period}
-          </Text>
-        </View>
+        {/* Center hole — floats above the Pressable, captures its own touch area */}
+        <CenterContent
+          totalAmount={totalAmount}
+          period={period}
+          selectedSegment={selectedSegment}
+        />
       </View>
     </View>
   );
