@@ -35,9 +35,9 @@ export default function LoginScreen() {
       [authMode]: identifier,
       password,
     };
- 
+
     const result = LoginSchema.safeParse(payload);
- 
+
     if (!result.success) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       const fieldErrors = result.error.flatten().fieldErrors as Record<
@@ -51,7 +51,7 @@ export default function LoginScreen() {
       });
       return;
     }
- 
+
     setErrors({});
     router.replace("/(protected)/(tabs)");
   }
@@ -60,7 +60,7 @@ export default function LoginScreen() {
     <AuthScreenShell
       alignHeader="left"
       title={
-        <Text className="text-6xl font-bold tracking-tight text-foreground">
+        <Text className="text-5xl font-bold tracking-tight text-foreground">
           Welcome{"\n"}
           <Text className="text-accent">Back</Text>
         </Text>
@@ -160,4 +160,3 @@ export default function LoginScreen() {
     </AuthScreenShell>
   );
 }
-

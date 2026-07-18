@@ -15,14 +15,12 @@ import Animated, {
   interpolate,
   interpolateColor,
   type SharedValue,
-  useAnimatedProps,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
 
-type VisibleRouteName = "index" | "groups" | "slice" | "friends" | "activity";
-const AnimatedFeather = Animated.createAnimatedComponent(Feather);
+type VisibleRouteName = "index" | "groups" | "slice" | "activity" | "insights";
 
 const TAB_SPACING = 76;
 const SPRING_CONFIG = {
@@ -39,10 +37,10 @@ const tabMeta: Record<
   }
 > = {
   index: { iconName: "home", label: "Home" },
-  groups: { iconName: "users", label: "Groups" },
+  groups: { iconName: "users", label: "Balances" },
   slice: { iconName: "plus", label: "Slice" },
-  friends: { iconName: "user", label: "Friends" },
-  activity: { iconName: "bell", label: "Activity" },
+  activity: { iconName: "activity", label: "Activity" },
+  insights: { iconName: "pie-chart", label: "Insights" },
 };
 
 function triggerSelectionHaptic() {
@@ -54,18 +52,16 @@ function DraggableTabItem({
   focusPosition,
   iconName,
   onPress,
-  isDark,
-  centerIconSV,
-  inactiveIconSV,
+  centerIconColor,
+  inactiveIconColor,
   inactiveBubbleColor,
 }: {
   itemIndex: number;
   focusPosition: SharedValue<number>;
   iconName: React.ComponentProps<typeof Feather>["name"];
   onPress: () => void;
-  isDark: boolean;
-  centerIconSV: SharedValue<string>;
-  inactiveIconSV: SharedValue<string>;
+  centerIconColor: string;
+  inactiveIconColor: string;
   inactiveBubbleColor: string;
 }) {
   const animatedStyle = useAnimatedStyle(() => {
@@ -124,27 +120,21 @@ function DraggableTabItem({
     };
   });
 
-  const iconStyle = useAnimatedStyle(() => {
+  const activeIconStyle = useAnimatedStyle(() => {
     const absDistance = Math.abs(itemIndex - focusPosition.value);
+    return {
+      opacity: interpolate(absDistance, [0, 1.5], [1, 0], Extrapolation.CLAMP),
+    };
+  });
 
+  const inactiveIconStyle = useAnimatedStyle(() => {
+    const absDistance = Math.abs(itemIndex - focusPosition.value);
     return {
       opacity: interpolate(
         absDistance,
         [0, 1.5],
-        [1, 0.78],
+        [0, 0.78],
         Extrapolation.CLAMP,
-      ),
-    };
-  });
-
-  const iconAnimatedProps = useAnimatedProps(() => {
-    const absDistance = Math.abs(itemIndex - focusPosition.value);
-
-    return {
-      color: interpolateColor(
-        absDistance,
-        [0, 1.5],
-        [centerIconSV.value, inactiveIconSV.value],
       ),
     };
   });
@@ -164,12 +154,11 @@ function DraggableTabItem({
           className="h-12 w-12 items-center justify-center rounded-full"
           style={bubbleStyle}
         >
-          <Animated.View style={iconStyle}>
-            <AnimatedFeather
-              animatedProps={iconAnimatedProps}
-              name={iconName}
-              size={22}
-            />
+          <Animated.View style={[{ position: "absolute" }, activeIconStyle]}>
+            <Feather name={iconName} size={22} color={centerIconColor} />
+          </Animated.View>
+          <Animated.View style={[{ position: "absolute" }, inactiveIconStyle]}>
+            <Feather name={iconName} size={22} color={inactiveIconColor} />
           </Animated.View>
         </Animated.View>
       </Pressable>
@@ -184,14 +173,6 @@ export function CustomBottomTabBar({ state, navigation }: BottomTabBarProps) {
 
   const bgColor = useCSSVariable("--color-background");
   const fgColor = useCSSVariable("--color-foreground");
-
-  const fgColorSV = useSharedValue(String(fgColor));
-  const bgColorSV = useSharedValue(String(bgColor));
-
-  useEffect(() => {
-    fgColorSV.value = String(fgColor);
-    bgColorSV.value = String(bgColor);
-  }, [fgColor, bgColor]);
 
   const visibleRoutes = state.routes.filter(
     (
@@ -225,18 +206,20 @@ export function CustomBottomTabBar({ state, navigation }: BottomTabBarProps) {
   const activeRoute =
     visibleRoutes[displayedIndex] ?? visibleRoutes[activeVisibleIndex];
   const activeLabel = activeRoute ? tabMeta[activeRoute.name].label : "";
-  const fadeColors: readonly [string, string, string, string] = isDark
+  const fadeColors: readonly [string, string, string, string, string] = isDark
     ? ([
-        "rgba(0,0,0,0)",
-        "rgba(0,0,0,0.52)",
-        "rgba(0,0,0,0.88)",
-        "rgba(0,0,0,0.96)",
+        "rgba(60,60,72,0)",
+        "rgba(48,48,60,0.55)",
+        "rgba(22,22,30,0.85)",
+        "rgba(4,4,6,0.98)",
+        "rgba(0,0,0,1)",
       ] as const)
     : ([
-        "rgba(255,255,255,0)",
-        "rgba(255,255,255,0.56)",
-        "rgba(255,255,255,0.9)",
-        "rgba(255,255,255,0.96)",
+        "rgba(180,180,195,0)",
+        "rgba(206,206,216,0.5)",
+        "rgba(236,236,242,0.85)",
+        "rgba(252,252,255,0.98)",
+        "rgba(255,255,255,1)",
       ] as const);
   const centerButtonColor = String(fgColor);
   const centerIconColor = String(bgColor);
@@ -324,8 +307,8 @@ export function CustomBottomTabBar({ state, navigation }: BottomTabBarProps) {
       <LinearGradient
         pointerEvents="none"
         colors={fadeColors}
-        locations={[0, 0.22, 0.58, 1]}
-        className="absolute inset-x-0 bottom-0 h-56"
+        locations={[0, 0.3, 0.6, 0.85, 1]}
+        className="absolute inset-x-0 bottom-0 h-64"
       />
       <GestureDetector gesture={panGesture}>
         <View
@@ -356,9 +339,8 @@ export function CustomBottomTabBar({ state, navigation }: BottomTabBarProps) {
                   itemIndex={index}
                   focusPosition={focusPosition}
                   iconName={meta.iconName}
-                  isDark={isDark}
-                  centerIconSV={bgColorSV}
-                  inactiveIconSV={fgColorSV}
+                  centerIconColor={centerIconColor}
+                  inactiveIconColor={inactiveIconColor}
                   inactiveBubbleColor={inactiveBubbleColor}
                   onPress={() => {
                     triggerSelectionHaptic();
@@ -369,14 +351,14 @@ export function CustomBottomTabBar({ state, navigation }: BottomTabBarProps) {
             })}
           </View>
 
-          {/* <View className="items-center justify-center"> */}
-          {/*   <Text */}
-          {/*     className="font-semibold text-xs mb-1 uppercase tracking-widest" */}
-          {/*     style={{ color: labelColor }} */}
-          {/*   > */}
-          {/*     {activeLabel} */}
-          {/*   </Text> */}
-          {/* </View> */}
+          <View className="items-center justify-center">
+            <Text
+              className="font-semibold text-xs mb-1 uppercase tracking-widest"
+              style={{ color: labelColor }}
+            >
+              {activeLabel}
+            </Text>
+          </View>
         </View>
       </GestureDetector>
     </View>

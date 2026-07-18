@@ -12,7 +12,7 @@ import { BottomSheet } from "heroui-native";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import Animated, {
-  FadeInDown,
+  FadeIn,
   FadeOut,
   LinearTransition,
 } from "react-native-reanimated";
@@ -24,8 +24,8 @@ import { MemberGrid } from "./member-grid";
 import { SplitTypeTabs } from "./split-type-tabs";
 import { GroupSelectionSheet } from "./group-selection-sheet";
 
-const SPRING_LAYOUT = LinearTransition.springify().damping(22).stiffness(280);
-const FADE_IN = FadeInDown.springify().damping(18).stiffness(260).duration(320);
+const SPRING_LAYOUT = LinearTransition.duration(220);
+const FADE_IN = FadeIn.duration(200);
 
 interface SplitConfigSheetProps {
   isOpen: boolean;

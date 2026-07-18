@@ -9,8 +9,6 @@ export default function ProtectedLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        statusBarStyle: isDark ? "light" : "dark",
-        statusBarTranslucent: true,
         contentStyle: { backgroundColor: bgColor },
       }}
     >

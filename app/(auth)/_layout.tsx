@@ -19,8 +19,6 @@ export default function AuthLayout() {
         screenOptions={{
           headerShown: false,
           animation: "slide_from_right",
-          statusBarStyle: isDark ? "light" : "dark",
-          statusBarTranslucent: true,
           contentStyle: { backgroundColor: bgColor },
         }}
       >

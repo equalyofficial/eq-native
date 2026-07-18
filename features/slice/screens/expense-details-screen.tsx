@@ -8,6 +8,7 @@ import {
   Platform,
   Image,
   StyleSheet,
+  InteractionManager,
 } from "react-native";
 import {
   SafeAreaView,
@@ -274,6 +275,14 @@ export default function ExpenseDetailsScreen() {
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isDateSheetOpen, setIsDateSheetOpen] = useState(false);
 
+  const [sheetsReady, setSheetsReady] = useState(false);
+  useEffect(() => {
+    const task = InteractionManager.runAfterInteractions(() =>
+      setSheetsReady(true),
+    );
+    return () => task.cancel();
+  }, []);
+
   const colorScheme = useEffectiveColorScheme();
   const isAnySheetOpen =
     isSplitSheetOpen ||
@@ -396,27 +405,34 @@ export default function ExpenseDetailsScreen() {
           </View>
         </KeyboardAvoidingView>
 
-        {/* Sheets */}
-        <SplitConfigSheet
-          isOpen={isSplitSheetOpen}
-          onOpenChange={setIsSplitSheetOpen}
-        />
-        <BillUploadSheet
-          isOpen={isBillSheetOpen}
-          onOpenChange={setIsBillSheetOpen}
-        />
-        <CategorySelectionSheet
-          isOpen={isCategorySheetOpen}
-          onOpenChange={setIsCategorySheetOpen}
-          selectedCategory={category}
-          onSelect={setCategory}
-        />
-        <DatePickerSheet
-          isOpen={isDateSheetOpen}
-          onOpenChange={setIsDateSheetOpen}
-          date={date}
-          onDateChange={setDate}
-        />
+        {(sheetsReady || isSplitSheetOpen) && (
+          <SplitConfigSheet
+            isOpen={isSplitSheetOpen}
+            onOpenChange={setIsSplitSheetOpen}
+          />
+        )}
+        {(sheetsReady || isBillSheetOpen) && (
+          <BillUploadSheet
+            isOpen={isBillSheetOpen}
+            onOpenChange={setIsBillSheetOpen}
+          />
+        )}
+        {(sheetsReady || isCategorySheetOpen) && (
+          <CategorySelectionSheet
+            isOpen={isCategorySheetOpen}
+            onOpenChange={setIsCategorySheetOpen}
+            selectedCategory={category}
+            onSelect={setCategory}
+          />
+        )}
+        {(sheetsReady || isDateSheetOpen) && (
+          <DatePickerSheet
+            isOpen={isDateSheetOpen}
+            onOpenChange={setIsDateSheetOpen}
+            date={date}
+            onDateChange={setDate}
+          />
+        )}
       </SafeAreaView>
     </View>
   );

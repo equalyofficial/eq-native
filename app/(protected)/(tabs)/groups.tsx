@@ -10,7 +10,7 @@ export default function GroupsScreen() {
           <View className="flex-row items-start justify-between">
             <View className="flex-1 pr-4">
               <Text className="text-4xl font-bold tracking-tight text-foreground">
-                Groups
+                Balances
               </Text>
             </View>
 

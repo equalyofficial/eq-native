@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Text, View, Pressable } from "react-native";
+import { Platform, Text, View, Pressable } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   Extrapolation,
@@ -11,6 +11,9 @@ import Animated, {
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { useCSSVariable } from "uniwind";
+import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
+import { BlurView } from "expo-blur";
+import { useEffectiveColorScheme } from "@/hooks/use-effective-color-scheme";
 
 type Option = {
   value: string;
@@ -30,6 +33,8 @@ export function AuthModeToggle({
 }: AuthModeToggleProps) {
   const [containerWidth, setContainerWidth] = useState(0);
   const accentColor = useCSSVariable("--color-accent") as string;
+  const isDark = useEffectiveColorScheme() === "dark";
+  const hasGlass = isLiquidGlassAvailable();
   const progress = useSharedValue(options.findIndex((o) => o.value === value));
   const isDragging = useSharedValue(0); // 0 for idle, 1 for dragging
   const gestureStart = useSharedValue(0);
@@ -79,7 +84,7 @@ export function AuthModeToggle({
   return (
     <GestureDetector gesture={panGesture}>
       <View
-        className="mt-4 rounded-full p-1 bg-card border border-border w-64 self-center relative overflow-hidden"
+        className="mt-4 rounded-full p-1 bg-card/60 border border-border w-64 self-center relative overflow-hidden"
         onLayout={(event) =>
           setContainerWidth(event.nativeEvent.layout.width - 8)
         }
@@ -95,15 +100,39 @@ export function AuthModeToggle({
                 bottom: 4,
                 borderRadius: 999,
                 zIndex: 0,
+                overflow: "hidden",
+                borderWidth: 1,
+                borderColor: isDark
+                  ? "rgba(255,255,255,0.14)"
+                  : "rgba(9,9,11,0.08)",
                 shadowColor: "#000",
                 shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.1,
-                shadowRadius: 4,
-                elevation: 2,
+                shadowOpacity: 0.12,
+                shadowRadius: 6,
+                elevation: 3,
               },
             ]}
-            className="bg-accent/30"
-          />
+          >
+            {hasGlass ? (
+              <GlassView
+                style={{ flex: 1, borderRadius: 999 }}
+                glassEffectStyle="regular"
+                tintColor={accentColor}
+                isInteractive
+              />
+            ) : (
+              <BlurView
+                intensity={Platform.OS === "android" ? 24 : 38}
+                tint={isDark ? "dark" : "light"}
+                experimentalBlurMethod="dimezisBlurView"
+                style={{ flex: 1, borderRadius: 999 }}
+              />
+            )}
+            <View
+              className="absolute inset-0 rounded-full bg-accent/20"
+              pointerEvents="none"
+            />
+          </Animated.View>
         )}
         <View className="flex-row relative z-10">
           {options.map((option, index) => (

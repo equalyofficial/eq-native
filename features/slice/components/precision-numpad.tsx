@@ -59,7 +59,7 @@ export function PrecisionNumpad({ onDigitPress, onDelete, onClear }: PrecisionNu
       key={key}
       onPressIn={() => handlePressIn(key)}
       onPressOut={handlePressOut}
-      className="flex-1 h-18 items-center justify-center rounded-full active:bg-foreground/5"
+      className="flex-1 h-16 items-center justify-center rounded-full active:bg-foreground/5"
     >
       {key === 'delete' ? (
         <Feather name="chevron-left" size={32} color={String(mutedColor)} />

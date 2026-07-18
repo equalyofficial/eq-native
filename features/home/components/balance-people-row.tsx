@@ -68,7 +68,7 @@ export function BalancePeopleRow() {
         <Text className="text-2xl font-bold tracking-tight text-foreground">
           People
         </Text>
-        <Pressable onPress={() => router.push("/friends")}>
+        <Pressable onPress={() => router.push("/(protected)/(tabs)/groups")}>
           <Text className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-gold">
             See All
           </Text>

@@ -19,6 +19,7 @@ import {
   initialWindowMetrics,
 } from "react-native-safe-area-context";
 import { withUniwind } from "uniwind";
+import * as SystemUI from "expo-system-ui";
 import { useEffectiveColorScheme } from "@/hooks/use-effective-color-scheme";
 import { Toasts } from "@backpackapp-io/react-native-toast";
 import "../global.css";
@@ -46,6 +47,10 @@ export default function RootLayout() {
     }
   }, [fontsLoaded]);
 
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(bgColor);
+  }, [bgColor]);
+
   if (!fontsLoaded) return null;
 
   return (
@@ -57,8 +62,6 @@ export default function RootLayout() {
             <Stack
               screenOptions={{
                 headerShown: false,
-                statusBarStyle: isDark ? "light" : "dark",
-                statusBarTranslucent: true,
                 contentStyle: { backgroundColor: bgColor },
               }}
             >

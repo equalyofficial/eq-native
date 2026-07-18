@@ -1,10 +1,11 @@
 // features/auth/components/auth-text-field.tsx
 
 import { useState, type ReactNode } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useEffectiveColorScheme } from "@/hooks/use-effective-color-scheme";
 import { useCSSVariable } from "uniwind";
+import { AppTextInput } from "@/components/ui/app-text-input";
 
 type AuthTextFieldProps = {
   label: string;
@@ -87,7 +88,7 @@ export function AuthTextField({
       >
         {leftIcon ? <View className="mr-3">{leftIcon}</View> : null}
 
-        <TextInput
+        <AppTextInput
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
@@ -101,7 +102,7 @@ export function AuthTextField({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           keyboardAppearance={colorScheme === "dark" ? "dark" : "light"}
-          className="flex-1 py-4 text-base font-sans text-foreground"
+          className="flex-1"
         />
 
         {secureTextEntry ? (

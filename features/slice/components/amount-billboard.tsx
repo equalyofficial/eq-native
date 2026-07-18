@@ -36,16 +36,16 @@ export function AmountBillboard({
   }));
 
   return (
-    <View className="items-center justify-center py-8">
+    <View className="items-center justify-center py-4">
       <Animated.View className="flex-row items-baseline" style={animatedStyle}>
         <Text className="text-6xl font-bold text-foreground opacity-40 mr-2">
           +₹
         </Text>
-        <Text className="text-8xl font-bold tracking-tighter text-foreground">
+        <Text className="text-8xl font-bold tracking-tight text-foreground">
           {whole}
         </Text>
         {decimal !== undefined && (
-          <Text className="text-5xl font-medium tracking-tighter text-foreground opacity-80">
+          <Text className="text-5xl font-medium tracking-tight text-foreground opacity-80">
             .{decimal}
           </Text>
         )}

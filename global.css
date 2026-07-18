@@ -29,6 +29,7 @@
 @layer theme {
   :root {
     @variant light {
+      --background: #ffffff;
       --color-background: #ffffff;
       --color-foreground: #000000;
       --color-card: #f4f4f5;
@@ -51,6 +52,7 @@
     }
 
     @variant dark {
+      --background: #000000;
       --color-background: #000000;
       /* Deep Uber-like dark */
       --color-foreground: #ffffff;

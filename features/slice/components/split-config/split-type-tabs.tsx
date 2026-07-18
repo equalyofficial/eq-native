@@ -1,10 +1,11 @@
-import React from "react";
-import { View, Text, Pressable } from "react-native";
+import React, { useEffect } from "react";
+import { View, Text, Pressable, type LayoutChangeEvent } from "react-native";
 import * as Haptics from "expo-haptics";
 import Animated, {
+  Easing,
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
+  withTiming,
 } from "react-native-reanimated";
 import type { SplitType } from "../../hooks/use-slice-flow-store";
 
@@ -14,7 +15,7 @@ const TABS: { id: SplitType; label: string }[] = [
   { id: "custom", label: "Custom" },
 ];
 
-const SPRING = { damping: 20, stiffness: 320, mass: 0.7 };
+const TIMING = { duration: 220, easing: Easing.out(Easing.cubic) };
 
 interface SplitTypeTabsProps {
   splitType: SplitType;
@@ -23,25 +24,36 @@ interface SplitTypeTabsProps {
 
 export function SplitTypeTabs({ splitType, onSplitTypeChange }: SplitTypeTabsProps) {
   const containerWidth = useSharedValue(0);
+  const translateX = useSharedValue(0);
+  const hasMeasured = useSharedValue(false);
   const activeIndex = TABS.findIndex((t) => t.id === splitType);
 
-  const pillStyle = useAnimatedStyle(() => {
-    const tabWidth = containerWidth.value / TABS.length;
-    return {
-      width: tabWidth - 4,
-      transform: [
-        { translateX: withSpring(activeIndex * tabWidth + 2, SPRING) },
-      ],
-    };
-  });
+  useEffect(() => {
+    if (containerWidth.value > 0) {
+      const tabWidth = containerWidth.value / TABS.length;
+      translateX.value = withTiming(activeIndex * tabWidth + 2, TIMING);
+    }
+  }, [activeIndex, containerWidth, translateX]);
+
+  const pillStyle = useAnimatedStyle(() => ({
+    width: containerWidth.value / TABS.length - 4,
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  const handleLayout = (e: LayoutChangeEvent) => {
+    const width = e.nativeEvent.layout.width;
+    containerWidth.value = width;
+    if (!hasMeasured.value) {
+      translateX.value = (activeIndex * width) / TABS.length + 2;
+      hasMeasured.value = true;
+    }
+  };
 
   return (
     <View
       className="flex-row rounded-full bg-card p-1"
       style={{ position: "relative" }}
-      onLayout={(e) => {
-        containerWidth.value = e.nativeEvent.layout.width;
-      }}
+      onLayout={handleLayout}
     >
       {/* Sliding pill — absolutely positioned behind tab labels */}
       <Animated.View

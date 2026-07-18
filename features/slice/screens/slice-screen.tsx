@@ -1,15 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, Text } from "react-native";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from "react-native-reanimated";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import * as Haptics from "expo-haptics";
 import { TabProfileButton } from "@/components/tab-profile-button";
 
 import { AmountBillboard } from "../components/amount-billboard";
@@ -18,7 +14,6 @@ import { PrecisionNumpad } from "../components/precision-numpad";
 import { SliceCTAButton } from "../components/slice-cta-button";
 import { CategorySelectionSheet } from "../components/category-selection-sheet";
 import { useSliceInput } from "../hooks/use-slice-input";
-import { useSliceCTAStore } from "../hooks/use-slice-cta-store";
 
 export default function SliceScreen() {
   const insets = useSafeAreaInsets();
@@ -31,31 +26,18 @@ export default function SliceScreen() {
   const [category, setCategory] = useState("food_and_dining");
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  const { activate, deactivate } = useSliceCTAStore();
-  const hasAmount = amount !== "0";
+  const hasAmount = parseFloat(amount.replace(/,/g, "")) > 0;
 
-  useEffect(() => {
-    if (hasAmount) {
-      activate(() =>
-        router.push({
-          pathname: "/(protected)/expense-details",
-          params: { amount: amount.replace(/,/g, ""), category },
-        }),
-      );
-    } else {
-      deactivate();
-    }
-    return () => deactivate();
-  }, [hasAmount, amount, category, activate, deactivate]);
+  const handleContinue = () => {
+    if (!hasAmount) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    router.push({
+      pathname: "/(protected)/expense-details",
+      params: { amount: amount.replace(/,/g, ""), category },
+    });
+  };
 
-  const ghostOpacity = useSharedValue(1);
-  useEffect(() => {
-    ghostOpacity.value = withTiming(hasAmount ? 0 : 1, { duration: 140 });
-  }, [hasAmount, ghostOpacity]);
-  const ghostStyle = useAnimatedStyle(() => ({ opacity: ghostOpacity.value }));
-
-  // Position the button in the transparent upper region of the tab bar gradient
-  const bottomPadding = insets.bottom + 112;
+  const bottomClearance = insets.bottom + 128;
 
   return (
     <View className="flex-1 bg-background">
@@ -63,20 +45,15 @@ export default function SliceScreen() {
         edges={["top"]}
         style={{ flex: 1, backgroundColor: "transparent" }}
       >
-        <View className="px-5 pt-3 pb-6 flex-row items-center justify-between">
+        <View className="px-5 pt-3 pb-2 flex-row items-center justify-between">
           <Text className="text-4xl font-bold tracking-tight text-foreground">
             Slice
           </Text>
           <TabProfileButton />
         </View>
 
-        <View
-          className="flex-1 py-6 px-5"
-          style={{ paddingBottom: bottomPadding }}
-        >
-          <View className="gap-4">
-            <AmountBillboard amount={amount} shakeTrigger={shakeTrigger} />
-          </View>
+        <View className="flex-1 px-5" style={{ paddingBottom: bottomClearance }}>
+          <AmountBillboard amount={amount} shakeTrigger={shakeTrigger} />
 
           <View className="mt-auto gap-3">
             <CategoryRibbon
@@ -89,13 +66,7 @@ export default function SliceScreen() {
               onDelete={deleteLast}
               onClear={clear}
             />
-            {/* Ghost button: fades (dim) under gradient when no amount; fades out when overlay is active */}
-            <Animated.View
-              style={ghostStyle}
-              pointerEvents={hasAmount ? "none" : "auto"}
-            >
-              <SliceCTAButton isEnabled={false} onPress={() => {}} />
-            </Animated.View>
+            <SliceCTAButton isEnabled={hasAmount} onPress={handleContinue} />
           </View>
         </View>
       </SafeAreaView>

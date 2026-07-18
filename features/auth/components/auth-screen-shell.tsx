@@ -30,7 +30,11 @@ export function AuthScreenShell({
   children,
 }: AuthScreenShellProps) {
   return (
-    <StyledSafeAreaView edges={["top", "bottom"]} style={{ flex: 1 }}>
+    <StyledSafeAreaView
+      edges={["top", "bottom"]}
+      className="bg-background"
+      style={{ flex: 1 }}
+    >
       <View className="flex-1 bg-background">
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -38,7 +42,7 @@ export function AuthScreenShell({
         >
           <ScrollView
             className="flex-1"
-            contentContainerClassName="flex-grow px-6 pt-12 pb-8 justify-between"
+            contentContainerClassName="flex-grow px-6 pt-8 pb-8 justify-between"
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >

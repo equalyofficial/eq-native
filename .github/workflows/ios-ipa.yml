@@ -1,0 +1,53 @@
+name: Build iOS IPA (unsigned, for sideloading)
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Prebuild native iOS project
+        run: npx expo prebuild -p ios --clean
+
+      - name: Install CocoaPods
+        run: cd ios && pod install
+
+      - name: Build archive (signing disabled)
+        run: |
+          cd ios
+          xcodebuild \
+            -workspace Equaly.xcworkspace \
+            -scheme Equaly \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath "$PWD/build/Equaly.xcarchive" \
+            archive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM=""
+
+      - name: Repackage as unsigned .ipa
+        run: |
+          cd ios/build
+          mkdir -p Payload
+          cp -r Equaly.xcarchive/Products/Applications/*.app Payload/
+          zip -qr Equaly-unsigned.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Equaly-unsigned-ipa
+          path: ios/build/Equaly-unsigned.ipa
+          retention-days: 7
