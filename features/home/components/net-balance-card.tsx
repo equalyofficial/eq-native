@@ -10,7 +10,6 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
-  withSpring,
   withTiming,
   type SharedValue,
 } from "react-native-reanimated";
@@ -18,11 +17,15 @@ import Animated, {
 export const CARD_FULL_HEIGHT = 240;
 export const PEEK_HEIGHT = 72;
 
+const CARD_GRADIENT = ["#1A103A", "#2E1E68", "#4A35A0", "#21124D"] as const;
+
+const FLIP_TIMING = { duration: 340, easing: Easing.out(Easing.cubic) };
+
 // ─── Decorative backdrop (front face only) ───────────────────────────────────
 
 function CardBackdrop() {
   return (
-    <View className="absolute inset-0 overflow-hidden rounded-[2rem]">
+    <View className="absolute inset-0 overflow-hidden rounded-3xl">
       <LinearGradient
         colors={["rgba(255,255,255,0.12)", "rgba(255,255,255,0.02)", "rgba(0,0,0,0)"]}
         start={{ x: 0.05, y: 0.1 }}
@@ -90,9 +93,9 @@ function MovingGlow() {
 
 function CardFrontFace() {
   return (
-    <View style={{ height: CARD_FULL_HEIGHT }} className="overflow-hidden rounded-[2rem]">
+    <View style={{ height: CARD_FULL_HEIGHT }} className="overflow-hidden rounded-3xl border-continuous">
       <LinearGradient
-        colors={["#1A103A", "#2E1E68", "#4A35A0", "#21124D"]}
+        colors={CARD_GRADIENT}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFillObject}
@@ -171,9 +174,9 @@ function CardBackFace({ shimmerX }: { shimmerX: SharedValue<number> }) {
   }));
 
   return (
-    <View style={{ height: CARD_FULL_HEIGHT }} className="overflow-hidden rounded-[2rem]">
+    <View style={{ height: CARD_FULL_HEIGHT }} className="overflow-hidden rounded-3xl border-continuous">
       <LinearGradient
-        colors={["#1A103A", "#2E1E68", "#4A35A0", "#21124D"]}
+        colors={CARD_GRADIENT}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFillObject}
@@ -237,9 +240,9 @@ export function NetBalanceCard({ scrollY, snapPoint }: Props) {
     () => scrollY.value,
     (y) => {
       if (y > snapPoint * 0.6 && cardProgress.value < 0.5) {
-        cardProgress.value = withSpring(1, { damping: 32, stiffness: 260, mass: 0.9 });
+        cardProgress.value = withTiming(1, FLIP_TIMING);
       } else if (y < snapPoint * 0.4 && cardProgress.value > 0.5) {
-        cardProgress.value = withSpring(0, { damping: 32, stiffness: 260, mass: 0.9 });
+        cardProgress.value = withTiming(0, FLIP_TIMING);
       }
     },
   );
@@ -315,12 +318,14 @@ export function NetBalanceCard({ scrollY, snapPoint }: Props) {
       className="bg-background"
     >
       <View style={styles.outerGlow} className="mx-5 flex-1">
-        <Animated.View style={frontStyle}>
-          <CardFrontFace />
-        </Animated.View>
-        <Animated.View style={backStyle}>
-          <CardBackFace shimmerX={shimmerX} />
-        </Animated.View>
+        <View className="flex-1 overflow-hidden rounded-3xl border-continuous">
+          <Animated.View style={frontStyle}>
+            <CardFrontFace />
+          </Animated.View>
+          <Animated.View style={backStyle}>
+            <CardBackFace shimmerX={shimmerX} />
+          </Animated.View>
+        </View>
       </View>
     </Animated.View>
   );

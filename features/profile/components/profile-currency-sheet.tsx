@@ -130,11 +130,13 @@ export function ProfileCurrencySheet({
         />
         <BottomSheet.Content
           snapPoints={snapPoints}
+          enableOverDrag={false}
+          enableDynamicSizing={false}
           keyboardBehavior="interactive"
           keyboardBlurBehavior="restore"
           android_keyboardInputMode="adjustResize"
           backgroundClassName="rounded-t-[2rem] bg-card"
-          contentContainerClassName="px-5 pt-3"
+          contentContainerClassName="h-full px-5 pt-3"
         >
           <Pressable className="flex-1" onPress={Keyboard.dismiss}>
             <View className="mb-5 gap-4">
@@ -158,7 +160,7 @@ export function ProfileCurrencySheet({
                 }}
               />
 
-              <View className="flex-row items-center justify-between rounded-[1.1rem] bg-background px-4 py-3">
+              <View className="flex-row items-center justify-between rounded-xl bg-background px-4 py-3">
                 <View>
                   <Text className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted">
                     Current Selection
@@ -205,7 +207,7 @@ export function ProfileCurrencySheet({
                         setShowError(false);
                       }}
                       className={[
-                        "flex-row items-center justify-between rounded-[1.4rem] border px-4 py-3.5",
+                        "flex-row items-center justify-between rounded-2xl border px-4 py-3.5",
                         selected
                           ? "border-foreground bg-background"
                           : "border-border bg-background/70",
@@ -241,7 +243,7 @@ export function ProfileCurrencySheet({
                 })}
 
                 {filteredCurrencies.length === 0 ? (
-                  <View className="rounded-[1.3rem] border border-border bg-background px-4 py-4">
+                  <View className="rounded-xl border border-border bg-background px-4 py-4">
                     <Text className="text-sm font-medium text-foreground">
                       No matching currencies found
                     </Text>

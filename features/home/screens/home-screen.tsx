@@ -99,9 +99,7 @@ export default function HomeScreen() {
             <RecentActivitySection items={recentActivity.slice(0, 5)} />
           </Animated.ScrollView>
 
-          {/* River gradient — card-purple → transparent, anchored to card bottom.
-              Rendered above scroll content (zIndex 9) but below the card (zIndex 10)
-              so it never covers the card face itself. */}
+          {/* River gradient — TEMPORARILY DISABLED for rework.
           <Animated.View
             style={[absorptionStyle, styles.absorptionGradient]}
             pointerEvents="none"
@@ -114,6 +112,7 @@ export default function HomeScreen() {
               style={StyleSheet.absoluteFillObject}
             />
           </Animated.View>
+          */}
 
           {/* Card — rendered last, topmost layer */}
           <NetBalanceCard scrollY={scrollY} snapPoint={SNAP_POINT} />

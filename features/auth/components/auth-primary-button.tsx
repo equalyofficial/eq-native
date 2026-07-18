@@ -21,7 +21,7 @@ export function AuthPrimaryButton({
       onPress={onPress}
       disabled={isLoading}
       className={[
-        "mt-2 min-h-14 flex-row items-center justify-center rounded-3xl bg-button-primary px-5",
+        "mt-2 min-h-14 flex-row items-center justify-center rounded-full bg-button-primary px-5",
         isLoading ? "opacity-70" : "opacity-100",
       ].join(" ")}
     >

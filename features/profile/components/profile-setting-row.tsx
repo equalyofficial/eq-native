@@ -49,7 +49,7 @@ export const ProfileSettingRow = memo(function ProfileSettingRow({
     <View
       className={[
         "flex-row items-center justify-between px-1 py-4",
-        separated ? "border-b border-border bg-transparent" : "rounded-[1.4rem] border border-border bg-card px-4",
+        separated ? "border-b border-border bg-transparent" : "rounded-2xl border border-border bg-card px-4",
       ].join(" ")}
     >
       <View className="flex-1 flex-row items-center gap-3 pr-4">

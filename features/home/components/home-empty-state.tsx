@@ -15,7 +15,7 @@ export function HomeEmptyState({
 }: HomeEmptyStateProps) {
   return (
     <View className="flex-1 items-center justify-center px-8">
-      <View className="w-full max-w-sm items-center rounded-[2rem] border border-border bg-card px-6 py-8">
+      <View className="w-full max-w-sm items-center rounded-3xl border border-border bg-card px-6 py-8">
         <Text className="text-center text-2xl font-bold tracking-tight text-foreground">
           {title}
         </Text>

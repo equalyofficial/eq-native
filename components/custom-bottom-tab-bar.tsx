@@ -208,19 +208,19 @@ export function CustomBottomTabBar({ state, navigation }: BottomTabBarProps) {
   const activeLabel = activeRoute ? tabMeta[activeRoute.name].label : "";
   const fadeColors: readonly [string, string, string, string, string] = isDark
     ? ([
-        "rgba(60,60,72,0)",
-        "rgba(48,48,60,0.55)",
-        "rgba(22,22,30,0.85)",
-        "rgba(4,4,6,0.98)",
-        "rgba(0,0,0,1)",
-      ] as const)
+      "rgba(0,0,0,0)",
+      "rgba(0,0,0,0.65)",
+      "rgba(0,0,0,0.95)",
+      "rgba(0,0,0,1)",
+      "rgba(0,0,0,1)",
+    ] as const)
     : ([
-        "rgba(180,180,195,0)",
-        "rgba(206,206,216,0.5)",
-        "rgba(236,236,242,0.85)",
-        "rgba(252,252,255,0.98)",
-        "rgba(255,255,255,1)",
-      ] as const);
+      "rgba(255,255,255,0)",
+      "rgba(255,255,255,0.65)",
+      "rgba(255,255,255,0.95)",
+      "rgba(255,255,255,1)",
+      "rgba(255,255,255,1)",
+    ] as const);
   const centerButtonColor = String(fgColor);
   const centerIconColor = String(bgColor);
   const inactiveIconColor = String(fgColor);
@@ -307,8 +307,8 @@ export function CustomBottomTabBar({ state, navigation }: BottomTabBarProps) {
       <LinearGradient
         pointerEvents="none"
         colors={fadeColors}
-        locations={[0, 0.3, 0.6, 0.85, 1]}
-        className="absolute inset-x-0 bottom-0 h-64"
+        locations={[0, 0.32, 0.58, 0.72, 1]}
+        style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 150 }}
       />
       <GestureDetector gesture={panGesture}>
         <View

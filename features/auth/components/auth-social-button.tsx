@@ -37,7 +37,7 @@ export function AuthSocialButton({
   return (
     <Pressable
       onPress={onPress}
-      className="min-h-14 w-full flex-row items-center justify-center rounded-3xl bg-card border border-border px-5"
+      className="min-h-14 w-full flex-row items-center justify-center rounded-full bg-card border border-border px-5"
     >
       <View className="h-8 w-8 items-center justify-center ">
         {icon.family === "ant" ? (

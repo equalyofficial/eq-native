@@ -7,12 +7,12 @@ export function ProfileIdentityCard({ user }: { user: ProfileUser }) {
   const mutedColor = useCSSVariable("--color-muted") as string;
 
   return (
-    <View className="rounded-[2rem] border border-border bg-card px-5 py-5">
+    <View className="rounded-3xl border border-border bg-card px-5 py-5">
       <View className="mb-5 flex-row items-start justify-between">
         <View className="flex-1 flex-row items-center gap-4 pr-4">
           <Image
             source={{ uri: user.avatar }}
-            className="h-20 w-20 rounded-[1.5rem]"
+            className="h-20 w-20 rounded-2xl"
           />
 
           <View className="flex-1">
@@ -35,7 +35,7 @@ export function ProfileIdentityCard({ user }: { user: ProfileUser }) {
         </Pressable>
       </View>
 
-      <View className="rounded-[1.5rem] border border-border bg-background px-4 py-4">
+      <View className="rounded-2xl border border-border bg-background px-4 py-4">
         <Text className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-muted">
           UPI ID
         </Text>
