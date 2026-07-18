@@ -53,3 +53,6 @@ GEMINI.md
 CLAUDE.md
 
 docs/
+
+# Using bun as the package manager
+package-lock.json

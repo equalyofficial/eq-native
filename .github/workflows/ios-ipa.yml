@@ -13,13 +13,17 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 22
 
-      - run: npm ci
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
 
       - name: Prebuild native iOS project
-        run: npx expo prebuild -p ios --clean
+        run: bunx expo prebuild -p ios --clean
 
       - name: Install CocoaPods
         run: cd ios && pod install
