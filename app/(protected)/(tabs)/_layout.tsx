@@ -1,29 +1,23 @@
-import { Tabs } from "expo-router";
-import { StyleSheet, View } from "react-native";
+import { withLayoutContext } from "expo-router";
+import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { CustomBottomTabBar } from "@/components/custom-bottom-tab-bar";
+
+const { Navigator } = createMaterialTopTabNavigator();
+
+const MaterialTopTabs = withLayoutContext(Navigator);
 
 export default function TabLayout() {
   return (
-    <View style={{ flex: 1 }}>
-      <Tabs
-        tabBar={(props) => <CustomBottomTabBar {...props} />}
-        screenOptions={{ headerShown: false, tabBarStyle: styles.tabBar }}
-      >
-        <Tabs.Screen name="index" options={{ title: "Home" }} />
-        <Tabs.Screen name="groups" options={{ title: "Balances" }} />
-        <Tabs.Screen name="slice" options={{ title: "Slice" }} />
-        <Tabs.Screen name="activity" options={{ title: "Activity" }} />
-        <Tabs.Screen name="insights" options={{ title: "Insights" }} />
-      </Tabs>
-    </View>
+    <MaterialTopTabs
+      tabBarPosition="bottom"
+      tabBar={(props) => <CustomBottomTabBar {...props} />}
+      screenOptions={{ swipeEnabled: true, lazy: false }}
+    >
+      <MaterialTopTabs.Screen name="index" options={{ title: "Home" }} />
+      <MaterialTopTabs.Screen name="groups" options={{ title: "Balances" }} />
+      <MaterialTopTabs.Screen name="slice" options={{ title: "Slice" }} />
+      <MaterialTopTabs.Screen name="activity" options={{ title: "Activity" }} />
+      <MaterialTopTabs.Screen name="insights" options={{ title: "Insights" }} />
+    </MaterialTopTabs>
   );
 }
-
-const styles = StyleSheet.create({
-  tabBar: {
-    borderTopWidth: 0,
-    elevation: 0,
-    position: "absolute",
-    backgroundColor: "transparent",
-  },
-});

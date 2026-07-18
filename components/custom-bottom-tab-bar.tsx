@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Feather } from "@expo/vector-icons";
-import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import type { MaterialTopTabBarProps } from "@react-navigation/material-top-tabs";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { Platform, Pressable, Text, View } from "react-native";
@@ -166,7 +166,7 @@ function DraggableTabItem({
   );
 }
 
-export function CustomBottomTabBar({ state, navigation }: BottomTabBarProps) {
+export function CustomBottomTabBar({ state, navigation }: MaterialTopTabBarProps) {
   const insets = useSafeAreaInsets();
   const systemColorScheme = useColorScheme();
   const { theme, hasAdaptiveThemes } = useUniwind();
