@@ -8,8 +8,9 @@ import {
 import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
+import { AnimatedSplash } from "@/components/animated-splash";
 import { queryClient } from "@/lib/query";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { HeroUINativeProvider } from "heroui-native";
@@ -34,24 +35,25 @@ export default function RootLayout() {
   const isDark = useEffectiveColorScheme() === "dark";
   const bgColor = isDark ? "#000000" : "#ffffff";
 
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     Outfit_400Regular,
     Outfit_500Medium,
     Outfit_600SemiBold,
     Outfit_700Bold,
   });
+  const [splashDone, setSplashDone] = useState(false);
 
   useEffect(() => {
-    if (fontsLoaded) {
+    if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, fontError]);
 
   useEffect(() => {
     SystemUI.setBackgroundColorAsync(bgColor);
   }, [bgColor]);
 
-  if (!fontsLoaded) return null;
+  if (!fontsLoaded && !fontError) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -91,6 +93,7 @@ export default function RootLayout() {
           </HeroUINativeProvider>
         </StyledSafeAreaProvider>
       </QueryClientProvider>
+      {!splashDone && <AnimatedSplash onFinish={() => setSplashDone(true)} />}
     </GestureHandlerRootView>
   );
 }

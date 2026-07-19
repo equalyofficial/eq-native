@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Feather } from "@expo/vector-icons";
 import type { MaterialTopTabBarProps } from "@react-navigation/material-top-tabs";
 import * as Haptics from "expo-haptics";
@@ -232,7 +232,13 @@ export function CustomBottomTabBar({ state, navigation }: MaterialTopTabBarProps
     : "rgba(9,9,11,0.08)";
   const labelColor = String(fgColor);
 
+  const previousIndex = useRef(activeVisibleIndex);
+
   useEffect(() => {
+    if (previousIndex.current !== activeVisibleIndex) {
+      triggerSelectionHaptic();
+      previousIndex.current = activeVisibleIndex;
+    }
     focusPosition.value = withSpring(activeVisibleIndex, SPRING_CONFIG);
     lastHapticIndex.value = activeVisibleIndex;
     setDisplayedIndex(activeVisibleIndex);
@@ -342,10 +348,7 @@ export function CustomBottomTabBar({ state, navigation }: MaterialTopTabBarProps
                   centerIconColor={centerIconColor}
                   inactiveIconColor={inactiveIconColor}
                   inactiveBubbleColor={inactiveBubbleColor}
-                  onPress={() => {
-                    triggerSelectionHaptic();
-                    animateToIndex(index);
-                  }}
+                  onPress={() => animateToIndex(index)}
                 />
               );
             })}

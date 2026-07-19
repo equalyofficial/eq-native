@@ -78,7 +78,7 @@ export default function RegisterScreen() {
     <AuthScreenShell
       alignHeader="left"
       title={
-        <Text className="text-6xl font-bold tracking-tight text-foreground">
+        <Text className="text-5xl font-bold tracking-tight text-foreground">
           Create{"\n"}
           <Text className="text-accent">Account</Text>
         </Text>

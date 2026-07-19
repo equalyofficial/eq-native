@@ -1,10 +1,14 @@
-import { Image, Text, View } from "react-native";
+import { router } from "expo-router";
+import { Image, Pressable, Text, View } from "react-native";
 import { BalanceAmount } from "./balance-amount";
 import type { PersonBalance } from "../balances.data";
 
 export function PersonBalanceRow({ person }: { person: PersonBalance }) {
   return (
-    <View className="flex-row items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3">
+    <Pressable
+      onPress={() => router.push(`/person/${person.id}`)}
+      className="flex-row items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 active:opacity-80"
+    >
       <View className="relative h-12 w-12">
         <View className="h-12 w-12 overflow-hidden rounded-full border border-border bg-background">
           <Image source={{ uri: person.avatar }} className="h-full w-full" />
@@ -22,6 +26,6 @@ export function PersonBalanceRow({ person }: { person: PersonBalance }) {
       </View>
 
       <BalanceAmount amount={person.amount} type={person.type} />
-    </View>
+    </Pressable>
   );
 }

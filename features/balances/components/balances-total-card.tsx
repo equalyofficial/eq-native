@@ -70,7 +70,7 @@ export function BalancesTotalCard({ amount }: { amount: string }) {
           <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-gold">
             Total Net Balance
           </Text>
-          <Text className="mt-1 text-4xl font-bold tracking-tight text-white">
+          <Text className="mt-1 text-5xl font-bold tracking-tight text-white">
             <Text className="text-brand-indigo">{symbol}</Text>
             {value}
           </Text>

@@ -18,16 +18,10 @@ export default function InsightsScreen() {
           contentContainerClassName="pb-40"
           showsVerticalScrollIndicator={false}
         >
-          <View className="flex-row items-start justify-between">
-            <View className="flex-1 pr-4">
-              <Text className="text-4xl font-bold tracking-tight text-foreground">
-                Insights
-              </Text>
-              <Text className="mt-1 text-sm text-muted">
-                Where your money goes
-              </Text>
-            </View>
-
+          <View className="flex-row items-center justify-between">
+            <Text className="text-4xl font-bold tracking-tight text-foreground">
+              Insights
+            </Text>
             <TabProfileButton />
           </View>
 

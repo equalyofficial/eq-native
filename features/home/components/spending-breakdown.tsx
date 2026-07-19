@@ -21,7 +21,7 @@ export function SpendingBreakdown() {
           Spending
         </Text>
         <View className="rounded-full border border-border px-3 py-1.5">
-          <Text className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">
+          <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
             {period}
           </Text>
         </View>

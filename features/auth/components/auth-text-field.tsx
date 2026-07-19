@@ -76,7 +76,7 @@ export function AuthTextField({
   return (
     <View className="gap-2">
       <View className="flex-row items-center justify-between">
-        <Text className="text-[11px] font-bold tracking-widest text-muted uppercase">
+        <Text className="text-xs font-semibold tracking-[0.18em] text-muted uppercase">
           {label}
         </Text>
         {labelRight}

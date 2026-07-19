@@ -1,6 +1,7 @@
 import React from "react";
-import { ScrollView, View, Text, Pressable } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import { BottomSheet } from "heroui-native";
+import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import * as Haptics from "expo-haptics";
 import Animated, {
   useSharedValue,
@@ -80,15 +81,17 @@ export function CategorySelectionSheet({
       <BottomSheet.Portal>
         <BottomSheet.Overlay />
         <BottomSheet.Content
-          backgroundClassName="rounded-t-[2rem]"
-          className="bg-background"
-          contentContainerClassName="pt-3 pb-0"
+          snapPoints={["70%"]}
+          enableOverDrag={false}
+          enableDynamicSizing={false}
+          backgroundClassName="rounded-t-3xl bg-background"
+          contentContainerClassName="pt-3 pb-0 h-full"
         >
           <BottomSheet.Title className="text-xl font-bold text-foreground px-6 mb-5">
             Category
           </BottomSheet.Title>
 
-          <ScrollView
+          <BottomSheetScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 40 }}
           >
@@ -105,7 +108,7 @@ export function CategorySelectionSheet({
                 />
               ))}
             </View>
-          </ScrollView>
+          </BottomSheetScrollView>
         </BottomSheet.Content>
       </BottomSheet.Portal>
     </BottomSheet>

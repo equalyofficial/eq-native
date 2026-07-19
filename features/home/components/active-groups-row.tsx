@@ -43,7 +43,7 @@ function GroupCard({ group }: { group: ActiveGroup }) {
       >
         <Text style={{ fontSize: 26 }}>{group.emoji}</Text>
         <Text
-          className="mt-2 text-base font-bold tracking-tight text-foreground"
+          className="mt-2 text-base font-semibold tracking-tight text-foreground"
           numberOfLines={1}
         >
           {group.name}
@@ -58,7 +58,7 @@ function GroupCard({ group }: { group: ActiveGroup }) {
           {group.lastExpense}
         </Text>
         <View className="mt-2 flex-row items-center justify-between">
-          <Text className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
+          <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
             {group.lastExpenseTime}
           </Text>
           <Text className={`text-sm font-bold ${balanceColor}`}>

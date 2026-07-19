@@ -123,8 +123,7 @@ export function GroupSelectionSheet({
       <BottomSheet.Portal>
         <BottomSheet.Overlay className="bg-black/30" />
         <BottomSheet.Content
-          backgroundClassName="rounded-t-[2rem] bg-background"
-          className="bg-background"
+          backgroundClassName="rounded-t-3xl bg-background"
           contentContainerClassName="pt-3 pb-0"
         >
           <BottomSheet.Title className="mb-5 px-6 text-xl font-bold text-foreground">

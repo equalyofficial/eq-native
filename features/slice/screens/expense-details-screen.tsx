@@ -22,7 +22,7 @@ import { useEffectiveColorScheme } from "@/hooks/use-effective-color-scheme";
 
 import { TabProfileButton } from "@/components/tab-profile-button";
 import { useSliceFlowStore } from "../hooks/use-slice-flow-store";
-import { mockGroups, getPlaceholders } from "../slice-flow.data";
+import { mockGroups, mockMembers, getPlaceholders } from "../slice-flow.data";
 import { ALL_CATEGORIES } from "../components/category-ribbon";
 
 import { ExpenseSummaryHero } from "../components/expense-summary/expense-summary-hero";
@@ -90,14 +90,24 @@ function DescriptionCard({
 // ─── Split With card ─────────────────────────────────────────────────────────
 
 function SplitWithCard({ onPress }: { onPress: () => void }) {
-  const { groupId, selectedMemberIds, splitType } = useSliceFlowStore();
+  const { amount, groupId, selectedMemberIds, splitType } = useSliceFlowStore();
   const mutedColor = String(useCSSVariable("--color-muted") ?? "#71717a");
 
   const selectedGroup = mockGroups.find((g) => g.id === groupId) ?? null;
-  const selectedMembers = (selectedGroup?.members ?? []).filter((m) =>
+  const memberPool = selectedGroup ? selectedGroup.members : mockMembers;
+  const selectedMembers = memberPool.filter((m) =>
     selectedMemberIds.includes(m.id),
   );
   const hasSelection = selectedMembers.length > 0;
+
+  const perPerson =
+    hasSelection && splitType === "equal"
+      ? (parseFloat(amount) || 0) / selectedMembers.length
+      : null;
+  const perPersonLabel =
+    perPerson !== null
+      ? `₹${perPerson.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`
+      : "";
 
   const splitLabel =
     splitType === "equal"
@@ -144,22 +154,35 @@ function SplitWithCard({ onPress }: { onPress: () => void }) {
 
       {/* Avatar row */}
       {hasSelection && (
-        <View className="mt-4 flex-row items-center">
-          {selectedMembers.slice(0, 4).map((member, i) => (
-            <Image
-              key={member.id}
-              source={{ uri: member.avatarUrl }}
-              className="h-9 w-9 rounded-full border-2 border-card"
-              style={{ marginLeft: i > 0 ? -10 : 0 }}
-            />
-          ))}
-          {selectedMembers.length > 4 && (
-            <View
-              className="h-9 w-9 items-center justify-center rounded-full border-2 border-card bg-foreground/10"
-              style={{ marginLeft: -10 }}
-            >
-              <Text className="text-[10px] font-semibold text-muted">
-                +{selectedMembers.length - 4}
+        <View className="mt-4 flex-row items-end justify-between">
+          <View className="flex-row items-center">
+            {selectedMembers.slice(0, 4).map((member, i) => (
+              <Image
+                key={member.id}
+                source={{ uri: member.avatarUrl }}
+                className="h-9 w-9 rounded-full border-2 border-card"
+                style={{ marginLeft: i > 0 ? -10 : 0 }}
+              />
+            ))}
+            {selectedMembers.length > 4 && (
+              <View
+                className="h-9 w-9 items-center justify-center rounded-full border-2 border-card bg-foreground/10"
+                style={{ marginLeft: -10 }}
+              >
+                <Text className="text-[10px] font-semibold text-muted">
+                  +{selectedMembers.length - 4}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {perPerson !== null && (
+            <View className="items-end">
+              <Text className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+                Per Person
+              </Text>
+              <Text className="mt-0.5 text-4xl font-bold tracking-tight text-foreground">
+                {perPersonLabel}
               </Text>
             </View>
           )}
@@ -283,13 +306,6 @@ export default function ExpenseDetailsScreen() {
     return () => task.cancel();
   }, []);
 
-  const colorScheme = useEffectiveColorScheme();
-  const isAnySheetOpen =
-    isSplitSheetOpen ||
-    isBillSheetOpen ||
-    isCategorySheetOpen ||
-    isDateSheetOpen;
-
   useEffect(() => {
     if (params.amount && params.category) {
       initFlow(params.amount, params.category);
@@ -297,9 +313,7 @@ export default function ExpenseDetailsScreen() {
   }, []);
 
   const isCTAEnabled =
-    description.trim().length > 0 &&
-    groupId !== null &&
-    selectedMemberIds.length > 0;
+    description.trim().length > 0 && selectedMemberIds.length > 0;
 
   const handleCreateExpense = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -327,7 +341,7 @@ export default function ExpenseDetailsScreen() {
           >
             <Feather name="arrow-left" size={22} color={fgColor} />
           </Pressable>
-          <Text className="text-xl font-bold tracking-tight text-foreground">
+          <Text className="text-2xl font-bold tracking-tight text-foreground">
             Expense Details
           </Text>
           <TabProfileButton />
@@ -391,8 +405,8 @@ export default function ExpenseDetailsScreen() {
                 <Text
                   className={
                     isCTAEnabled
-                      ? "text-lg font-semibold text-background"
-                      : "text-lg font-semibold text-foreground/40"
+                      ? "text-base font-semibold text-background"
+                      : "text-base font-semibold text-foreground/40"
                   }
                 >
                   Create Expense

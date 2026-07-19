@@ -49,7 +49,7 @@ export function SliceCTAButton({
       ) : (
         <>
           <Text
-            className={`text-lg font-semibold ${
+            className={`text-base font-semibold ${
               isEnabled ? "text-background" : "text-muted"
             }`}
           >

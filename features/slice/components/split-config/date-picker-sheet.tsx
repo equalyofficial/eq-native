@@ -195,7 +195,7 @@ export function DatePickerSheet({
           }}
         />
         <BottomSheet.Content
-          backgroundClassName="rounded-t-[2rem] bg-background"
+          backgroundClassName="rounded-t-3xl bg-background"
           contentContainerClassName="pt-2 pb-0"
         >
           {/* Header */}

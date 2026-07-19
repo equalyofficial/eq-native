@@ -3,12 +3,12 @@ import {
   View,
   Text,
   Pressable,
-  ScrollView,
   Image,
   TextInput,
   StyleSheet,
 } from "react-native";
 import { BottomSheet } from "heroui-native";
+import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import Animated, {
@@ -19,10 +19,10 @@ import Animated, {
 import { useCSSVariable } from "uniwind";
 
 import { useSliceFlowStore } from "../../hooks/use-slice-flow-store";
-import { mockGroups } from "../../slice-flow.data";
-import { MemberGrid } from "./member-grid";
+import { mockGroups, mockMembers } from "../../slice-flow.data";
 import { SplitTypeTabs } from "./split-type-tabs";
-import { GroupSelectionSheet } from "./group-selection-sheet";
+import { MemberSelectSheet } from "./member-select-sheet";
+import { SegmentToggle } from "@/features/balances/components/segment-toggle";
 
 const SPRING_LAYOUT = LinearTransition.duration(220);
 const FADE_IN = FadeIn.duration(200);
@@ -51,16 +51,26 @@ export function SplitConfigSheet({
     setCustomAmount,
   } = useSliceFlowStore();
 
-  const [isGroupSheetOpen, setIsGroupSheetOpen] = useState(false);
+  const [source, setSource] = useState<"groups" | "users">("groups");
+  const [isMemberSheetOpen, setIsMemberSheetOpen] = useState(false);
 
   const fgColor = String(useCSSVariable("--color-foreground") ?? "#000");
   const mutedColor = String(useCSSVariable("--color-muted") ?? "#71717a");
 
   const totalAmount = parseFloat(amount) || 0;
   const selectedGroup = mockGroups.find((g) => g.id === groupId) ?? null;
-  const selectedMembers = (selectedGroup?.members ?? []).filter((m) =>
+  const memberPool = selectedGroup ? selectedGroup.members : mockMembers;
+  const selectedMembers = memberPool.filter((m) =>
     selectedMemberIds.includes(m.id),
   );
+
+  const switchSource = (next: "groups" | "users") => {
+    setSource(next);
+    if (next === "users") {
+      setGroupId(null);
+      setSelectedMembers([]);
+    }
+  };
   const equalShare =
     selectedMembers.length > 0 ? totalAmount / selectedMembers.length : 0;
 
@@ -109,9 +119,13 @@ export function SplitConfigSheet({
         <BottomSheet.Portal>
           <BottomSheet.Overlay className="bg-black/40" />
           <BottomSheet.Content
-            backgroundClassName="rounded-t-[2.5rem] bg-background"
-            className="bg-background"
-            contentContainerClassName="pt-2 pb-0"
+            snapPoints={["90%"]}
+            enableOverDrag={false}
+            enableDynamicSizing={false}
+            keyboardBehavior="interactive"
+            keyboardBlurBehavior="restore"
+            backgroundClassName="rounded-t-3xl bg-background"
+            contentContainerClassName="pt-2 pb-0 h-full"
           >
             {/* ── Header ── */}
             <View className="flex-row items-center justify-between px-6 pt-3 pb-5">
@@ -149,7 +163,7 @@ export function SplitConfigSheet({
             </View>
 
             {/* ── Scrollable body ── */}
-            <ScrollView
+            <BottomSheetScrollView
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{
                 paddingHorizontal: 20,
@@ -158,74 +172,189 @@ export function SplitConfigSheet({
               }}
               keyboardShouldPersistTaps="handled"
             >
-              {/* Group selector */}
-              <Animated.View layout={SPRING_LAYOUT} style={{ gap: 8 }}>
-                <Text className="text-xs font-semibold uppercase tracking-widest text-muted">
-                  Group
-                </Text>
-                <Pressable
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    setIsGroupSheetOpen(true);
-                  }}
-                  className="flex-row items-center justify-between rounded-2xl border border-border bg-card px-4 py-4 active:opacity-80"
-                >
-                  <View className="flex-row items-center" style={{ gap: 12 }}>
-                    <Text className="text-xl leading-none">
-                      {selectedGroup?.emoji ?? "👥"}
-                    </Text>
-                    <Text
-                      className={
-                        selectedGroup
-                          ? "text-base font-semibold text-foreground"
-                          : "text-base font-medium text-muted"
-                      }
+              {/* Source toggle — Groups / Users */}
+              <SegmentToggle
+                options={[
+                  { value: "groups", label: "Groups" },
+                  { value: "users", label: "Users" },
+                ]}
+                value={source}
+                onChange={switchSource}
+              />
+
+              {/* Groups mode — inline group list */}
+              {source === "groups" && !selectedGroup && (
+                <Animated.View layout={SPRING_LAYOUT} style={{ gap: 8 }}>
+                  <Text className="text-xs font-semibold uppercase tracking-widest text-muted">
+                    Your Groups
+                  </Text>
+                  {mockGroups.map((g) => (
+                    <Pressable
+                      key={g.id}
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        handleGroupSelect(g.id);
+                        setIsMemberSheetOpen(true);
+                      }}
+                      className="flex-row items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 active:opacity-80"
                     >
-                      {selectedGroup?.name ?? "Select a group"}
-                    </Text>
-                  </View>
-                  <View className="flex-row items-center" style={{ gap: 8 }}>
-                    {selectedGroup && (
-                      <Text className="text-xs text-muted">
-                        {selectedGroup.members.length} members
+                      <View className="h-11 w-11 items-center justify-center rounded-full bg-background">
+                        <Text className="text-xl leading-none">{g.emoji}</Text>
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-base font-semibold text-foreground">
+                          {g.name}
+                        </Text>
+                        <Text className="text-xs text-muted">
+                          {g.members.length} members
+                        </Text>
+                      </View>
+                      <View className="flex-row -space-x-2">
+                        {g.members.slice(0, 3).map((m, i) => (
+                          <Image
+                            key={m.id}
+                            source={{ uri: m.avatarUrl }}
+                            className="h-7 w-7 rounded-full border-2 border-card"
+                            style={{ marginLeft: i > 0 ? -8 : 0 }}
+                          />
+                        ))}
+                      </View>
+                      <Feather name="chevron-right" size={16} color={mutedColor} />
+                    </Pressable>
+                  ))}
+                </Animated.View>
+              )}
+
+              {/* Groups mode — one compact card: group + members combined */}
+              {source === "groups" && selectedGroup && (
+                <Animated.View
+                  entering={FADE_IN}
+                  layout={SPRING_LAYOUT}
+                >
+                  <Pressable
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setIsMemberSheetOpen(true);
+                    }}
+                    className="flex-row items-center gap-3 rounded-2xl border border-border bg-card px-3.5 py-3 active:opacity-80"
+                  >
+                    <View className="h-10 w-10 items-center justify-center rounded-full bg-background">
+                      <Text className="text-lg leading-none">
+                        {selectedGroup.emoji}
                       </Text>
+                    </View>
+
+                    <View className="flex-1">
+                      <View className="flex-row items-center" style={{ gap: 8 }}>
+                        <Text
+                          className="text-base font-semibold text-foreground"
+                          numberOfLines={1}
+                        >
+                          {selectedGroup.name}
+                        </Text>
+                        <Pressable
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            Haptics.selectionAsync();
+                            setGroupId(null);
+                            setSelectedMembers([]);
+                          }}
+                          hitSlop={8}
+                        >
+                          <Text className="text-xs font-semibold text-accent">
+                            Change
+                          </Text>
+                        </Pressable>
+                      </View>
+                      <Text className="text-xs text-muted">
+                        {selectedMembers.length} of {selectedGroup.members.length}{" "}
+                        selected
+                      </Text>
+                    </View>
+
+                    {selectedMembers.length > 0 && (
+                      <View className="flex-row -space-x-2">
+                        {selectedMembers.slice(0, 3).map((m, i) => (
+                          <Image
+                            key={m.id}
+                            source={{ uri: m.avatarUrl }}
+                            className="h-8 w-8 rounded-full border-2 border-card"
+                            style={{ marginLeft: i > 0 ? -8 : 0 }}
+                          />
+                        ))}
+                        {selectedMembers.length > 3 && (
+                          <View
+                            className="h-8 w-8 items-center justify-center rounded-full border-2 border-card bg-background"
+                            style={{ marginLeft: -8 }}
+                          >
+                            <Text className="text-[10px] font-bold text-muted">
+                              +{selectedMembers.length - 3}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
                     )}
                     <Feather name="chevron-right" size={16} color={mutedColor} />
-                  </View>
-                </Pressable>
-              </Animated.View>
+                  </Pressable>
+                </Animated.View>
+              )}
 
-              {/* Members + split config — revealed after group selection */}
-              {selectedGroup && (
+              {/* Users mode — members summary card */}
+              {source === "users" && (
                 <Animated.View
                   entering={FADE_IN}
                   exiting={FadeOut.duration(150)}
                   layout={SPRING_LAYOUT}
+                  style={{ gap: 8 }}
+                >
+                  <Text className="text-xs font-semibold uppercase tracking-widest text-muted">
+                    People
+                  </Text>
+                  <Pressable
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setIsMemberSheetOpen(true);
+                    }}
+                    className="flex-row items-center justify-between rounded-2xl border border-border bg-card px-4 py-3.5 active:opacity-80"
+                  >
+                    {selectedMembers.length > 0 ? (
+                      <View className="flex-row items-center" style={{ gap: 12 }}>
+                        <View className="flex-row -space-x-2">
+                          {selectedMembers.slice(0, 4).map((m, i) => (
+                            <Image
+                              key={m.id}
+                              source={{ uri: m.avatarUrl }}
+                              className="h-8 w-8 rounded-full border-2 border-card"
+                              style={{ marginLeft: i > 0 ? -8 : 0 }}
+                            />
+                          ))}
+                        </View>
+                        <Text className="text-sm font-semibold text-foreground">
+                          {selectedMembers.length} selected
+                        </Text>
+                      </View>
+                    ) : (
+                      <Text className="text-base font-medium text-muted">
+                        Tap to select people
+                      </Text>
+                    )}
+                    <View className="flex-row items-center gap-1 rounded-full bg-background px-3 py-1.5">
+                      <Text className="text-xs font-semibold uppercase tracking-wide text-muted">
+                        {selectedMembers.length > 0 ? "Edit" : "Select"}
+                      </Text>
+                      <Feather name="chevron-right" size={14} color={mutedColor} />
+                    </View>
+                  </Pressable>
+                </Animated.View>
+              )}
+
+              {/* Split type — once members are selected */}
+              {selectedMembers.length > 0 && (
+                <Animated.View
+                  entering={FADE_IN}
+                  layout={SPRING_LAYOUT}
                   style={{ gap: 20 }}
                 >
-                  {/* Member section header */}
-                  <View className="flex-row items-center justify-between">
-                    <Text className="text-xs font-semibold uppercase tracking-widest text-muted">
-                      Members
-                    </Text>
-                    <Pressable onPress={handleToggleAll} hitSlop={8}>
-                      <Text className="text-xs font-semibold text-primary">
-                        {allSelected ? "Deselect all" : "Select all"}
-                      </Text>
-                    </Pressable>
-                  </View>
-
-                  {/* 2-column avatar grid */}
-                  <MemberGrid
-                    members={selectedGroup.members}
-                    selectedMemberIds={selectedMemberIds}
-                    onToggleMember={toggleMember}
-                    splitType={splitType}
-                    totalAmount={totalAmount}
-                    percentages={percentages}
-                    customAmounts={customAmounts}
-                  />
-
                   {/* Split type tabs with animated indicator */}
                   <Animated.View layout={SPRING_LAYOUT} style={{ gap: 8 }}>
                     <Text className="text-xs font-semibold uppercase tracking-widest text-muted">
@@ -237,8 +366,8 @@ export function SplitConfigSheet({
                     />
                   </Animated.View>
 
-                  {/* Compact input rows — only for percentage or custom splits */}
-                  {splitType !== "equal" && selectedMembers.length > 0 && (
+                  {/* Per-person split breakdown — shown for all split types */}
+                  {selectedMembers.length > 0 && (
                     <Animated.View
                       entering={FADE_IN}
                       exiting={FadeOut.duration(120)}
@@ -314,7 +443,7 @@ export function SplitConfigSheet({
                                       %
                                     </Text>
                                   </View>
-                                ) : (
+                                ) : splitType === "custom" ? (
                                   <View
                                     className="flex-row items-center rounded-xl bg-background"
                                     style={{
@@ -343,7 +472,7 @@ export function SplitConfigSheet({
                                       }}
                                     />
                                   </View>
-                                )}
+                                ) : null}
 
                                 <Text
                                   className="text-sm font-bold text-foreground"
@@ -363,7 +492,7 @@ export function SplitConfigSheet({
                   )}
                 </Animated.View>
               )}
-            </ScrollView>
+            </BottomSheetScrollView>
 
             {/* ── Sticky bottom bar ── */}
             <View
@@ -405,12 +534,14 @@ export function SplitConfigSheet({
         </BottomSheet.Portal>
       </BottomSheet>
 
-      <GroupSelectionSheet
-        isOpen={isGroupSheetOpen}
-        onOpenChange={setIsGroupSheetOpen}
-        groups={mockGroups}
-        selectedGroupId={groupId}
-        onSelect={handleGroupSelect}
+      <MemberSelectSheet
+        isOpen={isMemberSheetOpen}
+        onOpenChange={setIsMemberSheetOpen}
+        title={source === "groups" ? "Select Members" : "Select People"}
+        members={memberPool}
+        selectedIds={selectedMemberIds}
+        onToggle={toggleMember}
+        onInvite={() => Haptics.selectionAsync()}
       />
     </>
   );

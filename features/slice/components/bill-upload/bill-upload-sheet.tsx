@@ -35,7 +35,7 @@ export function BillUploadSheet({ isOpen, onOpenChange }: BillUploadSheetProps) 
       <BottomSheet.Portal>
         <BottomSheet.Overlay className="bg-black/30" />
         <BottomSheet.Content
-          backgroundClassName="rounded-t-[2rem] bg-background"
+          backgroundClassName="rounded-t-3xl bg-background"
           contentContainerClassName="pt-2 pb-0"
         >
           {/* Header */}

@@ -6,10 +6,9 @@ import { useCSSVariable } from "uniwind";
 import { TabProfileButton } from "@/components/tab-profile-button";
 
 import { BalancesTotalCard } from "../components/balances-total-card";
-import {
-  BalancesSegmentToggle,
-  type BalanceSegment,
-} from "../components/balances-segment-toggle";
+import { SegmentToggle } from "../components/segment-toggle";
+
+type BalanceSegment = "people" | "groups";
 import { BalancesSearchBar } from "../components/balances-search-bar";
 import { PersonBalanceRow } from "../components/person-balance-row";
 import { GroupBalanceRow } from "../components/group-balance-row";
@@ -56,7 +55,16 @@ export default function BalancesScreen() {
 
         <View className="px-5">
           <BalancesTotalCard amount={totalNetBalance} />
-          <BalancesSegmentToggle value={segment} onChange={setSegment} />
+          <View className="mt-4">
+            <SegmentToggle
+              options={[
+                { value: "people", label: "People" },
+                { value: "groups", label: "Groups" },
+              ]}
+              value={segment}
+              onChange={setSegment}
+            />
+          </View>
           <BalancesSearchBar value={query} onChangeText={setQuery} />
         </View>
 

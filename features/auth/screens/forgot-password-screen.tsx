@@ -87,7 +87,7 @@ export function ForgotPasswordScreen() {
     <AuthScreenShell
       alignHeader="left"
       title={
-        <Text className="text-6xl font-bold text-foreground text-left tracking-tight">
+        <Text className="text-5xl font-bold text-foreground text-left tracking-tight">
           Reset{"\n"}
           <Text className="text-accent">Password</Text>
         </Text>

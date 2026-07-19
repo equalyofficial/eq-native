@@ -56,7 +56,7 @@ export function AuthScreenShell({
                 {typeof title === "string" ? (
                   <Text
                     className={[
-                      "text-4xl font-bold text-foreground",
+                      "text-5xl font-bold text-foreground",
                       alignHeader === "center" ? "text-center" : "text-left",
                     ].join(" ")}
                   >

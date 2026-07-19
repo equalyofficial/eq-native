@@ -135,7 +135,7 @@ export function ProfileCurrencySheet({
           keyboardBehavior="interactive"
           keyboardBlurBehavior="restore"
           android_keyboardInputMode="adjustResize"
-          backgroundClassName="rounded-t-[2rem] bg-card"
+          backgroundClassName="rounded-t-3xl bg-card"
           contentContainerClassName="h-full px-5 pt-3"
         >
           <Pressable className="flex-1" onPress={Keyboard.dismiss}>

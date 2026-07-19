@@ -12,14 +12,9 @@ import Animated, {
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 
-export type BalanceSegment = "people" | "groups";
-
-const OPTIONS: { value: BalanceSegment; label: string }[] = [
-  { value: "people", label: "People" },
-  { value: "groups", label: "Groups" },
-];
-
 const SPRING_CONFIG = { damping: 18, stiffness: 220, mass: 0.9 };
+
+type Option<T extends string> = { value: T; label: string };
 
 function SegmentLabel({
   index,
@@ -56,26 +51,30 @@ function SegmentLabel({
   );
 }
 
-export function BalancesSegmentToggle({
+export function SegmentToggle<T extends string>({
+  options,
   value,
   onChange,
+  compact,
 }: {
-  value: BalanceSegment;
-  onChange: (value: BalanceSegment) => void;
+  options: Option<T>[];
+  value: T;
+  onChange: (value: T) => void;
+  compact?: boolean;
 }) {
   const [containerWidth, setContainerWidth] = useState(0);
-  const activeIndex = OPTIONS.findIndex((o) => o.value === value);
+  const activeIndex = options.findIndex((o) => o.value === value);
   const progress = useSharedValue(activeIndex);
   const gestureStart = useSharedValue(activeIndex);
 
-  const segmentWidth = containerWidth > 0 ? containerWidth / OPTIONS.length : 0;
+  const segmentWidth = containerWidth > 0 ? containerWidth / options.length : 0;
 
   useEffect(() => {
     progress.value = withSpring(activeIndex, SPRING_CONFIG);
   }, [activeIndex, progress]);
 
   function setByIndex(nextIndex: number) {
-    const option = OPTIONS[nextIndex];
+    const option = options[nextIndex];
     if (option && option.value !== value) {
       onChange(option.value);
     }
@@ -91,11 +90,11 @@ export function BalancesSegmentToggle({
       progress.value = clamp(
         gestureStart.value + event.translationX / segmentWidth,
         0,
-        OPTIONS.length - 1,
+        options.length - 1,
       );
     })
     .onEnd(() => {
-      const nextIndex = clamp(Math.round(progress.value), 0, OPTIONS.length - 1);
+      const nextIndex = clamp(Math.round(progress.value), 0, options.length - 1);
       progress.value = withSpring(nextIndex, SPRING_CONFIG);
       scheduleOnRN(setByIndex, nextIndex);
     });
@@ -108,10 +107,11 @@ export function BalancesSegmentToggle({
   return (
     <GestureDetector gesture={panGesture}>
       <View
-        className="mt-4 h-12 rounded-full bg-card p-1"
-        onLayout={(e) =>
-          setContainerWidth(e.nativeEvent.layout.width - 8)
-        }
+        className={[
+          "rounded-full bg-card p-1",
+          compact ? "h-9" : "h-12",
+        ].join(" ")}
+        onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width - 8)}
       >
         {segmentWidth > 0 && (
           <Animated.View
@@ -122,7 +122,7 @@ export function BalancesSegmentToggle({
         )}
 
         <View className="flex-1 flex-row">
-          {OPTIONS.map((option, index) => (
+          {options.map((option, index) => (
             <Pressable
               key={option.value}
               onPress={() => onChange(option.value)}
