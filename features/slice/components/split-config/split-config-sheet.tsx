@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   Pressable,
   Image,
-  TextInput,
   StyleSheet,
 } from "react-native";
 import { BottomSheet } from "heroui-native";
@@ -12,6 +11,7 @@ import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import Animated, {
+  Easing,
   FadeIn,
   FadeOut,
   LinearTransition,
@@ -21,11 +21,20 @@ import { useCSSVariable } from "uniwind";
 import { useSliceFlowStore } from "../../hooks/use-slice-flow-store";
 import { mockGroups, mockMembers } from "../../slice-flow.data";
 import { SplitTypeTabs } from "./split-type-tabs";
+import { SplitBreakdown } from "./split-breakdown";
+import { MemberSelectGrid } from "./member-select-grid";
 import { MemberSelectSheet } from "./member-select-sheet";
 import { SegmentToggle } from "@/features/balances/components/segment-toggle";
+import { SwipeSwitch } from "@/components/swipe-switch";
+import { useSheetAnimation } from "@/hooks/use-sheet-animation";
+import type { SplitType } from "../../hooks/use-slice-flow-store";
 
-const SPRING_LAYOUT = LinearTransition.duration(220);
-const FADE_IN = FadeIn.duration(200);
+const SPLIT_ORDER: SplitType[] = ["equal", "percentage", "custom"];
+
+const SPRING_LAYOUT = LinearTransition.duration(240).easing(
+  Easing.out(Easing.cubic),
+);
+const FADE_IN = FadeIn.duration(220).easing(Easing.out(Easing.cubic));
 
 interface SplitConfigSheetProps {
   isOpen: boolean;
@@ -52,9 +61,25 @@ export function SplitConfigSheet({
   } = useSliceFlowStore();
 
   const [source, setSource] = useState<"groups" | "users">("groups");
+  const [userStep, setUserStep] = useState<"select" | "configure">("select");
   const [isMemberSheetOpen, setIsMemberSheetOpen] = useState(false);
 
+  const animationConfigs = useSheetAnimation();
+
+  // Reveal the body only after the sheet has finished sliding up, so the
+  // content animations don't fight the entrance and cause jitter.
+  const [revealed, setRevealed] = useState(false);
+  useEffect(() => {
+    if (!isOpen) {
+      setRevealed(false);
+      return;
+    }
+    const t = setTimeout(() => setRevealed(true), 260);
+    return () => clearTimeout(t);
+  }, [isOpen]);
+
   const fgColor = String(useCSSVariable("--color-foreground") ?? "#000");
+  const bgColor = String(useCSSVariable("--color-background") ?? "#fff");
   const mutedColor = String(useCSSVariable("--color-muted") ?? "#71717a");
 
   const totalAmount = parseFloat(amount) || 0;
@@ -64,11 +89,23 @@ export function SplitConfigSheet({
     selectedMemberIds.includes(m.id),
   );
 
+  // Split config (type + amounts) shows once a group's members are chosen, or
+  // once the Users flow advances past the selection step.
+  const showSplitConfig =
+    selectedMembers.length > 0 &&
+    (source === "groups" ? !!selectedGroup : userStep === "configure");
+
+  // Users flow, selection step — the bottom CTA advances instead of confirming.
+  const isUsersSelectStep = source === "users" && userStep === "select";
+
   const switchSource = (next: "groups" | "users") => {
+    if (next === source) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSource(next);
     if (next === "users") {
       setGroupId(null);
       setSelectedMembers([]);
+      setUserStep("select");
     }
   };
   const equalShare =
@@ -98,6 +135,14 @@ export function SplitConfigSheet({
     onOpenChange(false);
   };
 
+  const cycleSplit = (dir: 1 | -1) => {
+    const i = SPLIT_ORDER.indexOf(splitType);
+    const next = i + dir;
+    if (next < 0 || next >= SPLIT_ORDER.length) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSplitType(SPLIT_ORDER[next]);
+  };
+
   const formatRupee = (value: number) =>
     new Intl.NumberFormat("en-IN", {
       style: "currency",
@@ -106,12 +151,19 @@ export function SplitConfigSheet({
       maximumFractionDigits: 0,
     }).format(value);
 
+  const peopleLabel = `${selectedMembers.length} ${
+    selectedMembers.length === 1 ? "person" : "people"
+  }`;
   const summaryText =
     selectedMembers.length === 0
-      ? "Select members to continue"
-      : splitType === "equal"
-        ? `${formatRupee(equalShare)} each · ${selectedMembers.length} ${selectedMembers.length === 1 ? "person" : "people"}`
-        : `${selectedMembers.length} ${selectedMembers.length === 1 ? "person" : "people"} · Custom split`;
+      ? source === "users"
+        ? "Select people to continue"
+        : "Select members to continue"
+      : isUsersSelectStep
+        ? `${peopleLabel} selected`
+        : splitType === "equal"
+          ? `${formatRupee(equalShare)} each · ${peopleLabel}`
+          : `${peopleLabel} · Custom split`;
 
   return (
     <>
@@ -120,6 +172,7 @@ export function SplitConfigSheet({
           <BottomSheet.Overlay className="bg-black/40" />
           <BottomSheet.Content
             snapPoints={["90%"]}
+            animationConfigs={animationConfigs}
             enableOverDrag={false}
             enableDynamicSizing={false}
             keyboardBehavior="interactive"
@@ -172,19 +225,33 @@ export function SplitConfigSheet({
               }}
               keyboardShouldPersistTaps="handled"
             >
-              {/* Source toggle — Groups / Users */}
-              <SegmentToggle
-                options={[
-                  { value: "groups", label: "Groups" },
-                  { value: "users", label: "Users" },
-                ]}
-                value={source}
-                onChange={switchSource}
-              />
+              {revealed && (
+              <>
+              {/* Source toggle — hidden once a group is locked in */}
+              {!selectedGroup && (
+                <Animated.View entering={FADE_IN} layout={SPRING_LAYOUT}>
+                  <SegmentToggle
+                    options={[
+                      { value: "groups", label: "Groups" },
+                      { value: "users", label: "Users" },
+                    ]}
+                    value={source}
+                    onChange={switchSource}
+                  />
+                </Animated.View>
+              )}
 
-              {/* Groups mode — inline group list */}
+              {/* Groups mode — inline group list. Swipe left to jump to Users. */}
               {source === "groups" && !selectedGroup && (
-                <Animated.View layout={SPRING_LAYOUT} style={{ gap: 8 }}>
+                <SwipeSwitch
+                  onNext={() => switchSource("users")}
+                  onPrev={() => switchSource("groups")}
+                >
+                <Animated.View
+                  entering={FADE_IN}
+                  layout={SPRING_LAYOUT}
+                  style={{ gap: 8 }}
+                >
                   <Text className="text-xs font-semibold uppercase tracking-widest text-muted">
                     Your Groups
                   </Text>
@@ -223,6 +290,7 @@ export function SplitConfigSheet({
                     </Pressable>
                   ))}
                 </Animated.View>
+                </SwipeSwitch>
               )}
 
               {/* Groups mode — one compact card: group + members combined */}
@@ -245,27 +313,12 @@ export function SplitConfigSheet({
                     </View>
 
                     <View className="flex-1">
-                      <View className="flex-row items-center" style={{ gap: 8 }}>
-                        <Text
-                          className="text-base font-semibold text-foreground"
-                          numberOfLines={1}
-                        >
-                          {selectedGroup.name}
-                        </Text>
-                        <Pressable
-                          onPress={(e) => {
-                            e.stopPropagation();
-                            Haptics.selectionAsync();
-                            setGroupId(null);
-                            setSelectedMembers([]);
-                          }}
-                          hitSlop={8}
-                        >
-                          <Text className="text-xs font-semibold text-accent">
-                            Change
-                          </Text>
-                        </Pressable>
-                      </View>
+                      <Text
+                        className="text-base font-semibold text-foreground"
+                        numberOfLines={1}
+                      >
+                        {selectedGroup.name}
+                      </Text>
                       <Text className="text-xs text-muted">
                         {selectedMembers.length} of {selectedGroup.members.length}{" "}
                         selected
@@ -294,62 +347,113 @@ export function SplitConfigSheet({
                         )}
                       </View>
                     )}
-                    <Feather name="chevron-right" size={16} color={mutedColor} />
+
+                    {/* Switch group */}
+                    <Pressable
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        Haptics.selectionAsync();
+                        setGroupId(null);
+                        setSelectedMembers([]);
+                      }}
+                      hitSlop={8}
+                      className="h-8 w-8 items-center justify-center rounded-full bg-background active:opacity-70"
+                    >
+                      <Feather name="repeat" size={15} color={fgColor} />
+                    </Pressable>
                   </Pressable>
                 </Animated.View>
               )}
 
-              {/* Users mode — members summary card */}
-              {source === "users" && (
+              {/* Users mode · select step — people shown inline, directly
+                  selectable. Swipe right anywhere here to go back to Groups. */}
+              {source === "users" && userStep === "select" && (
+                <SwipeSwitch
+                  onNext={() => switchSource("users")}
+                  onPrev={() => switchSource("groups")}
+                >
                 <Animated.View
                   entering={FADE_IN}
                   exiting={FadeOut.duration(150)}
                   layout={SPRING_LAYOUT}
-                  style={{ gap: 8 }}
+                  style={{ gap: 10 }}
                 >
-                  <Text className="text-xs font-semibold uppercase tracking-widest text-muted">
-                    People
-                  </Text>
+                  <View className="flex-row items-center justify-between">
+                    <Text className="text-xs font-semibold uppercase tracking-widest text-muted">
+                      People
+                    </Text>
+                    {selectedMembers.length > 0 && (
+                      <Text className="text-xs font-semibold text-muted">
+                        {selectedMembers.length} selected
+                      </Text>
+                    )}
+                  </View>
+                  <MemberSelectGrid
+                    members={mockMembers}
+                    selectedIds={selectedMemberIds}
+                    onToggle={toggleMember}
+                    onInvite={() => Haptics.selectionAsync()}
+                  />
+                </Animated.View>
+                </SwipeSwitch>
+              )}
+
+              {/* Users mode · configure step — compact summary, tap to edit. */}
+              {source === "users" && userStep === "configure" && (
+                <Animated.View entering={FADE_IN} layout={SPRING_LAYOUT}>
                   <Pressable
                     onPress={() => {
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      setIsMemberSheetOpen(true);
+                      setUserStep("select");
                     }}
-                    className="flex-row items-center justify-between rounded-2xl border border-border bg-card px-4 py-3.5 active:opacity-80"
+                    className="flex-row items-center gap-3 rounded-2xl border border-border bg-card px-3.5 py-3 active:opacity-80"
                   >
-                    {selectedMembers.length > 0 ? (
-                      <View className="flex-row items-center" style={{ gap: 12 }}>
-                        <View className="flex-row -space-x-2">
-                          {selectedMembers.slice(0, 4).map((m, i) => (
-                            <Image
-                              key={m.id}
-                              source={{ uri: m.avatarUrl }}
-                              className="h-8 w-8 rounded-full border-2 border-card"
-                              style={{ marginLeft: i > 0 ? -8 : 0 }}
-                            />
-                          ))}
+                    <View className="flex-row -space-x-2">
+                      {selectedMembers.slice(0, 4).map((m, i) => (
+                        <Image
+                          key={m.id}
+                          source={{ uri: m.avatarUrl }}
+                          className="h-9 w-9 rounded-full border-2 border-card"
+                          style={{ marginLeft: i > 0 ? -9 : 0 }}
+                        />
+                      ))}
+                      {selectedMembers.length > 4 && (
+                        <View
+                          className="h-9 w-9 items-center justify-center rounded-full border-2 border-card bg-background"
+                          style={{ marginLeft: -9 }}
+                        >
+                          <Text className="text-[10px] font-bold text-muted">
+                            +{selectedMembers.length - 4}
+                          </Text>
                         </View>
-                        <Text className="text-sm font-semibold text-foreground">
-                          {selectedMembers.length} selected
-                        </Text>
-                      </View>
-                    ) : (
-                      <Text className="text-base font-medium text-muted">
-                        Tap to select people
+                      )}
+                    </View>
+
+                    <View className="flex-1">
+                      <Text className="text-base font-semibold text-foreground">
+                        {selectedMembers.length}{" "}
+                        {selectedMembers.length === 1 ? "person" : "people"}
                       </Text>
-                    )}
+                      <Text className="text-xs text-muted">Tap to add or edit</Text>
+                    </View>
+
                     <View className="flex-row items-center gap-1 rounded-full bg-background px-3 py-1.5">
+                      <Feather name="edit-2" size={12} color={mutedColor} />
                       <Text className="text-xs font-semibold uppercase tracking-wide text-muted">
-                        {selectedMembers.length > 0 ? "Edit" : "Select"}
+                        Edit
                       </Text>
-                      <Feather name="chevron-right" size={14} color={mutedColor} />
                     </View>
                   </Pressable>
                 </Animated.View>
               )}
 
-              {/* Split type — once members are selected */}
-              {selectedMembers.length > 0 && (
+              {/* Split type — once the split config is unlocked. Swipe
+                  left/right anywhere in this region to cycle split types. */}
+              {showSplitConfig && (
+                <SwipeSwitch
+                  onNext={() => cycleSplit(1)}
+                  onPrev={() => cycleSplit(-1)}
+                >
                 <Animated.View
                   entering={FADE_IN}
                   layout={SPRING_LAYOUT}
@@ -372,125 +476,23 @@ export function SplitConfigSheet({
                       entering={FADE_IN}
                       exiting={FadeOut.duration(120)}
                       layout={SPRING_LAYOUT}
-                      style={{ gap: 8 }}
                     >
-                      <Text className="text-xs font-semibold uppercase tracking-widest text-muted">
-                        Amounts
-                      </Text>
-                      <View className="rounded-2xl bg-card overflow-hidden">
-                        {selectedMembers.map((member, index) => {
-                          const isLast = index === selectedMembers.length - 1;
-                          const pct =
-                            percentages[member.id] ??
-                            Math.round(100 / selectedMembers.length);
-                          const custom =
-                            customAmounts[member.id] !== undefined
-                              ? customAmounts[member.id]!
-                              : equalShare;
-                          const displayAmount =
-                            splitType === "percentage"
-                              ? formatRupee((totalAmount * pct) / 100)
-                              : formatRupee(custom);
-
-                          return (
-                            <View key={member.id}>
-                              <View
-                                className="flex-row items-center px-4 py-3"
-                                style={{ gap: 12 }}
-                              >
-                                <Image
-                                  source={{ uri: member.avatarUrl }}
-                                  className="h-8 w-8 rounded-full"
-                                />
-                                <Text
-                                  className="flex-1 text-sm font-medium text-foreground"
-                                  numberOfLines={1}
-                                >
-                                  {member.name.split(" ")[0]}
-                                </Text>
-
-                                {/* Editable input pill */}
-                                {splitType === "percentage" ? (
-                                  <View
-                                    className="flex-row items-center rounded-xl bg-background"
-                                    style={{
-                                      paddingHorizontal: 10,
-                                      paddingVertical: 6,
-                                      gap: 2,
-                                    }}
-                                  >
-                                    <TextInput
-                                      value={String(pct)}
-                                      onChangeText={(t) => {
-                                        const n = parseInt(
-                                          t.replace(/[^0-9]/g, ""),
-                                          10,
-                                        );
-                                        if (!isNaN(n) && n >= 0 && n <= 100)
-                                          setPercentage(member.id, n);
-                                      }}
-                                      keyboardType="number-pad"
-                                      maxLength={3}
-                                      style={{
-                                        fontFamily: "Outfit_600SemiBold",
-                                        fontSize: 14,
-                                        color: fgColor,
-                                        minWidth: 28,
-                                        textAlign: "right",
-                                      }}
-                                    />
-                                    <Text className="text-sm font-semibold text-muted">
-                                      %
-                                    </Text>
-                                  </View>
-                                ) : splitType === "custom" ? (
-                                  <View
-                                    className="flex-row items-center rounded-xl bg-background"
-                                    style={{
-                                      paddingHorizontal: 10,
-                                      paddingVertical: 6,
-                                      gap: 2,
-                                    }}
-                                  >
-                                    <Text className="text-sm text-muted">₹</Text>
-                                    <TextInput
-                                      value={String(Math.round(custom))}
-                                      onChangeText={(t) => {
-                                        const n = parseFloat(
-                                          t.replace(/[^0-9.]/g, ""),
-                                        );
-                                        if (!isNaN(n))
-                                          setCustomAmount(member.id, n);
-                                      }}
-                                      keyboardType="decimal-pad"
-                                      style={{
-                                        fontFamily: "Outfit_600SemiBold",
-                                        fontSize: 14,
-                                        color: fgColor,
-                                        minWidth: 40,
-                                        textAlign: "right",
-                                      }}
-                                    />
-                                  </View>
-                                ) : null}
-
-                                <Text
-                                  className="text-sm font-bold text-foreground"
-                                  style={{ minWidth: 60, textAlign: "right" }}
-                                >
-                                  {displayAmount}
-                                </Text>
-                              </View>
-                              {!isLast && (
-                                <View className="mx-4 h-px bg-border" />
-                              )}
-                            </View>
-                          );
-                        })}
-                      </View>
+                      <SplitBreakdown
+                        members={selectedMembers}
+                        splitType={splitType}
+                        totalAmount={totalAmount}
+                        equalShare={equalShare}
+                        percentages={percentages}
+                        customAmounts={customAmounts}
+                        setPercentage={setPercentage}
+                        setCustomAmount={setCustomAmount}
+                      />
                     </Animated.View>
                   )}
                 </Animated.View>
+                </SwipeSwitch>
+              )}
+              </>
               )}
             </BottomSheetScrollView>
 
@@ -515,18 +517,28 @@ export function SplitConfigSheet({
                   </Text>
                 </Pressable>
                 <Pressable
-                  onPress={handleConfirm}
+                  onPress={() => {
+                    if (isUsersSelectStep) {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                      setUserStep("configure");
+                    } else {
+                      handleConfirm();
+                    }
+                  }}
                   disabled={selectedMembers.length === 0}
                   className={
                     selectedMembers.length > 0
-                      ? "items-center rounded-full py-3.5 bg-foreground active:opacity-80"
-                      : "items-center rounded-full py-3.5 bg-foreground/30"
+                      ? "flex-row items-center justify-center gap-1.5 rounded-full py-3.5 bg-foreground active:opacity-80"
+                      : "flex-row items-center justify-center gap-1.5 rounded-full py-3.5 bg-foreground/30"
                   }
                   style={[{ flex: 2 }, styles.confirmShadow]}
                 >
                   <Text className="text-base font-semibold text-background">
-                    Confirm Split
+                    {isUsersSelectStep ? "Continue" : "Confirm Split"}
                   </Text>
+                  {isUsersSelectStep && (
+                    <Feather name="arrow-right" size={17} color={bgColor} />
+                  )}
                 </Pressable>
               </View>
             </View>

@@ -10,6 +10,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { ALL_CATEGORIES } from "./category-ribbon";
+import { useSheetAnimation } from "@/hooks/use-sheet-animation";
 
 interface CategorySelectionSheetProps {
   isOpen: boolean;
@@ -76,12 +77,15 @@ export function CategorySelectionSheet({
   selectedCategory,
   onSelect,
 }: CategorySelectionSheetProps) {
+  const animationConfigs = useSheetAnimation();
+
   return (
     <BottomSheet isOpen={isOpen} onOpenChange={onOpenChange}>
       <BottomSheet.Portal>
         <BottomSheet.Overlay />
         <BottomSheet.Content
           snapPoints={["70%"]}
+          animationConfigs={animationConfigs}
           enableOverDrag={false}
           enableDynamicSizing={false}
           backgroundClassName="rounded-t-3xl bg-background"

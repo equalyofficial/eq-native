@@ -4,6 +4,7 @@ import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { Pressable, Text, View } from "react-native";
 import { useCSSVariable } from "uniwind";
 import { MemberSelectGrid } from "./member-select-grid";
+import { useSheetAnimation } from "@/hooks/use-sheet-animation";
 import type { MockMember } from "../../slice-flow.data";
 
 interface MemberSelectSheetProps {
@@ -26,6 +27,7 @@ export function MemberSelectSheet({
   onInvite,
 }: MemberSelectSheetProps) {
   const fgColor = String(useCSSVariable("--color-foreground") ?? "#000");
+  const animationConfigs = useSheetAnimation();
 
   return (
     <BottomSheet isOpen={isOpen} onOpenChange={onOpenChange}>
@@ -33,6 +35,7 @@ export function MemberSelectSheet({
         <BottomSheet.Overlay className="bg-black/40" />
         <BottomSheet.Content
           snapPoints={["78%"]}
+          animationConfigs={animationConfigs}
           enableOverDrag={false}
           enableDynamicSizing={false}
           backgroundClassName="rounded-t-3xl bg-background"

@@ -8,7 +8,6 @@ import {
   Platform,
   Image,
   StyleSheet,
-  InteractionManager,
 } from "react-native";
 import {
   SafeAreaView,
@@ -300,10 +299,8 @@ export default function ExpenseDetailsScreen() {
 
   const [sheetsReady, setSheetsReady] = useState(false);
   useEffect(() => {
-    const task = InteractionManager.runAfterInteractions(() =>
-      setSheetsReady(true),
-    );
-    return () => task.cancel();
+    const handle = requestAnimationFrame(() => setSheetsReady(true));
+    return () => cancelAnimationFrame(handle);
   }, []);
 
   useEffect(() => {
