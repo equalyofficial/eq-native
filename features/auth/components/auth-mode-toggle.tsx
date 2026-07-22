@@ -124,7 +124,7 @@ export function AuthModeToggle({
               <BlurView
                 intensity={Platform.OS === "android" ? 24 : 38}
                 tint={isDark ? "dark" : "light"}
-                experimentalBlurMethod="dimezisBlurView"
+                blurMethod="dimezisBlurView"
                 style={{ flex: 1, borderRadius: 999 }}
               />
             )}

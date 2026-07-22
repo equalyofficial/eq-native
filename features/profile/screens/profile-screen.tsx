@@ -9,9 +9,22 @@ import { ProfileSettingRow } from "../components/profile-setting-row";
 import { ProfileThemeSelector } from "../components/profile-theme-selector";
 import { profilePreferences, profileUser } from "../profile.data";
 import { useAuthStore } from "@/store/use-auth-store";
+import { useLogout } from "@/features/auth";
 
 export default function ProfileScreen() {
   const clearTokens = useAuthStore((state) => state.clearTokens);
+  const refreshToken = useAuthStore((state) => state.refreshToken);
+  const user = useAuthStore((state) => state.user);
+
+  // Real identity from the session; UPI (not yet bound to an endpoint) falls
+  // back to mock for now.
+  const displayUser = {
+    name: user?.name ?? profileUser.name,
+    phone: user?.phone ?? "",
+    email: user?.email ?? "",
+    avatar: user?.avatar_url ?? "",
+    upiId: profileUser.upiId,
+  };
   const [notificationsEnabled, setNotificationsEnabled] = useState(
     profilePreferences.notificationsEnabled,
   );
@@ -33,11 +46,29 @@ export default function ProfileScreen() {
     setIsLogoutSheetOpen(true);
   }, []);
 
-  const handleLogout = useCallback(() => {
-    clearTokens();
+  const goToAuth = useCallback(() => {
     setIsLogoutSheetOpen(false);
     router.replace("/login");
-  }, [clearTokens]);
+  }, []);
+
+  const { mutate: logout, isPending: isLoggingOut } = useLogout({
+    // useLogout already clears tokens + query cache on success.
+    onSuccess: goToAuth,
+    // Even if the server call fails (expired token, offline), log out locally.
+    onError: () => {
+      clearTokens();
+      goToAuth();
+    },
+  });
+
+  const handleLogout = useCallback(() => {
+    if (refreshToken) {
+      logout({ refresh_token: refreshToken });
+    } else {
+      clearTokens();
+      goToAuth();
+    }
+  }, [refreshToken, logout, clearTokens, goToAuth]);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -54,7 +85,7 @@ export default function ProfileScreen() {
               </Text>
             </View>
 
-            <ProfileIdentityCard user={profileUser} />
+            <ProfileIdentityCard user={displayUser} />
 
             <View>
               <ProfileThemeSelector />
@@ -121,6 +152,7 @@ export default function ProfileScreen() {
           isOpen={isLogoutSheetOpen}
           onOpenChange={setIsLogoutSheetOpen}
           onLogout={handleLogout}
+          isLoading={isLoggingOut}
         />
       </View>
     </SafeAreaView>

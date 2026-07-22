@@ -14,6 +14,8 @@ import { AuthSocialButton } from "@/features/auth/components/auth-social-button"
 import { AuthInlineLink } from "@/features/auth/components/auth-inline-link";
 import { AuthModeToggle } from "../components/auth-mode-toggle";
 import { LoginSchema } from "../auth.schemas";
+import { useLogin } from "../auth.hooks";
+import { AppToast } from "@/lib/toast";
 
 type AuthMode = "email" | "phone";
 
@@ -29,10 +31,21 @@ export default function LoginScreen() {
     form?: string;
   }>({});
 
+  const { mutate: login, isPending } = useLogin({
+    onSuccess: () => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      router.replace("/(protected)/(tabs)");
+    },
+    onError: (error) => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      AppToast.error(error.message ?? "Unable to log in. Please try again.");
+    },
+  });
+
   function handleLogin() {
     const payload = {
       mode: authMode,
-      [authMode]: identifier,
+      [authMode]: identifier.trim(),
       password,
     };
 
@@ -53,7 +66,11 @@ export default function LoginScreen() {
     }
 
     setErrors({});
-    router.replace("/(protected)/(tabs)");
+    login(
+      authMode === "email"
+        ? { email: identifier.trim(), password }
+        : { phone: identifier.trim(), password },
+    );
   }
 
   return (
@@ -96,7 +113,7 @@ export default function LoginScreen() {
           <AuthTextField
             label={authMode === "email" ? "EMAIL ADDRESS *" : "PHONE NUMBER *"}
             placeholder={
-              authMode === "email" ? "example@mail.com" : "+91 98765 43210"
+              authMode === "email" ? "example@mail.com" : "9876543210"
             }
             value={identifier}
             onChangeText={(text) => {
@@ -145,7 +162,11 @@ export default function LoginScreen() {
           }
         />
 
-        <AuthPrimaryButton label="Login" onPress={handleLogin} />
+        <AuthPrimaryButton
+          label="Login"
+          onPress={handleLogin}
+          isLoading={isPending}
+        />
 
         <AuthDivider />
 

@@ -12,7 +12,7 @@ import { AuthPrimaryButton } from "@/features/auth/components/auth-primary-butto
 import { AuthDivider } from "@/features/auth/components/auth-divider";
 import { AuthSocialButton } from "@/features/auth/components/auth-social-button";
 import { AuthInlineLink } from "@/features/auth/components/auth-inline-link";
-import { useRegister } from "../auth.hooks";
+import { useRegisterInitiate } from "../auth.hooks";
 import { RegisterSchema } from "../auth.schemas";
 
 type RegisterErrors = {
@@ -29,10 +29,18 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<RegisterErrors>({});
 
-  const register = useRegister({
-    onSuccess() {
+  const register = useRegisterInitiate({
+    onSuccess(challenge) {
       setErrors({});
-      router.replace("/(protected)/(tabs)");
+      // OTP sent — advance to the verification step.
+      router.push({
+        pathname: "/verify-otp",
+        params: {
+          challenge_id: challenge.challenge_id,
+          identifier: email.trim(),
+          purpose: "register",
+        },
+      });
     },
     onError(error) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);

@@ -71,7 +71,7 @@ export interface paths {
         put?: never;
         /**
          * Login
-         * @description Login with phone and password.
+         * @description Login with email or phone and password.
          */
         post: operations["postAuthLogin"];
         delete?: never;
@@ -1136,14 +1136,26 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
+                    /** Format: email */
+                    email: string;
+                    password: string;
+                } | {
                     phone: string;
                     password: string;
                 };
                 "application/x-www-form-urlencoded": {
+                    /** Format: email */
+                    email: string;
+                    password: string;
+                } | {
                     phone: string;
                     password: string;
                 };
                 "multipart/form-data": {
+                    /** Format: email */
+                    email: string;
+                    password: string;
+                } | {
                     phone: string;
                     password: string;
                 };

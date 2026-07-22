@@ -53,7 +53,8 @@
           "photosPermission": "Allow Equaly to access your photos to attach receipts.",
           "cameraPermission": "Allow Equaly to use the camera to capture receipts."
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,

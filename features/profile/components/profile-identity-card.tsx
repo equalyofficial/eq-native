@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
-import { Image, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useCSSVariable } from "uniwind";
+import { UserAvatar } from "@/components/user-avatar";
 import type { ProfileUser } from "../profile.data";
 
 export function ProfileIdentityCard({ user }: { user: ProfileUser }) {
@@ -10,19 +11,30 @@ export function ProfileIdentityCard({ user }: { user: ProfileUser }) {
     <View className="rounded-3xl border border-border bg-card px-5 py-5">
       <View className="mb-5 flex-row items-start justify-between">
         <View className="flex-1 flex-row items-center gap-4 pr-4">
-          <Image
-            source={{ uri: user.avatar }}
-            className="h-20 w-20 rounded-2xl"
-          />
+          <View className="h-20 w-20 overflow-hidden rounded-2xl">
+            <UserAvatar
+              uri={user.avatar}
+              name={user.name}
+              textClassName="text-2xl font-bold text-foreground"
+            />
+          </View>
 
           <View className="flex-1">
             <Text className="text-2xl font-bold tracking-tight text-foreground">
               {user.name}
             </Text>
-            <Text className="mt-1 text-base font-medium text-foreground/85">
-              {user.phone}
-            </Text>
-            <Text className="mt-1 text-sm text-muted">{user.email}</Text>
+            {user.phone ? (
+              <Text className="mt-1 text-base font-medium text-foreground/85">
+                {user.phone}
+              </Text>
+            ) : (
+              <Text className="mt-1 text-base font-medium text-accent">
+                Add mobile number
+              </Text>
+            )}
+            {user.email ? (
+              <Text className="mt-1 text-sm text-muted">{user.email}</Text>
+            ) : null}
           </View>
         </View>
 

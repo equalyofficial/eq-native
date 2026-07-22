@@ -6,30 +6,77 @@ import type {
   ForgotPasswordBody,
   GoogleAuthBody,
   LoginBody,
+  LoginOtpInitiateBody,
+  LoginOtpVerifyBody,
   LogoutBody,
+  OtpChallenge,
   RefreshBody,
-  RegisterBody,
+  RegisterInitiateBody,
+  RegisterVerifyBody,
+  ResendOtpBody,
   ResetPasswordBody,
 } from "./auth.types";
 
-export async function register(body: RegisterBody): Promise<AuthTokenResponse> {
-  const { data, error } = await api.POST("/auth/register", { body });
+// ─── Registration (OTP two-step) ───────────────────────────────────────────────
+
+export async function registerInitiate(
+  body: RegisterInitiateBody,
+): Promise<OtpChallenge> {
+  const { data, error } = await api.POST("/auth/register/initiate", { body });
   if (error) throw parseApiError(error);
   return data.data;
 }
 
-export async function login(body: LoginBody): Promise<AuthTokenResponse> {
-  const { data, error } = await api.POST("/auth/login", { body });
+export async function registerVerify(
+  body: RegisterVerifyBody,
+): Promise<AuthTokenResponse> {
+  const { data, error } = await api.POST("/auth/register/verify", { body });
   if (error) throw parseApiError(error);
   return data.data;
 }
+
+// ─── Login ──────────────────────────────────────────────────────────────────
+
+export async function login(body: LoginBody): Promise<AuthTokenResponse> {
+  const { data, error } = await api.POST("/auth/login", {
+    // body is an email-or-phone union; the generated path type may still be
+    // phone-only until api.json is regenerated.
+    body: body as never,
+  });
+  if (error) throw parseApiError(error);
+  return data.data;
+}
+
+export async function loginOtpInitiate(
+  body: LoginOtpInitiateBody,
+): Promise<OtpChallenge> {
+  const { data, error } = await api.POST("/auth/login/otp/initiate", { body });
+  if (error) throw parseApiError(error);
+  return data.data;
+}
+
+export async function loginOtpVerify(
+  body: LoginOtpVerifyBody,
+): Promise<AuthTokenResponse> {
+  const { data, error } = await api.POST("/auth/login/otp/verify", { body });
+  if (error) throw parseApiError(error);
+  return data.data;
+}
+
+export async function resendOtp(body: ResendOtpBody): Promise<OtpChallenge> {
+  const { data, error } = await api.POST("/auth/otp/resend", { body });
+  if (error) throw parseApiError(error);
+  return data.data;
+}
+
+// ─── Password reset ───────────────────────────────────────────────────────────
 
 export async function forgotPassword(
   body: ForgotPasswordBody,
-): Promise<string> {
+): Promise<{ message: string; dev_token: string | null }> {
   const { data, error } = await api.POST("/auth/forgot-password", { body });
   if (error) throw parseApiError(error);
-  return data.data.message;
+  return data.data;
 }
 
 export async function resetPassword(body: ResetPasswordBody): Promise<string> {
@@ -37,6 +84,8 @@ export async function resetPassword(body: ResetPasswordBody): Promise<string> {
   if (error) throw parseApiError(error);
   return data.data.message;
 }
+
+// ─── OAuth ────────────────────────────────────────────────────────────────────
 
 export async function signInWithGoogle(
   body: GoogleAuthBody,
@@ -53,6 +102,8 @@ export async function signInWithApple(
   if (error) throw parseApiError(error);
   return data.data;
 }
+
+// ─── Tokens ───────────────────────────────────────────────────────────────────
 
 export async function refreshTokens(
   body: RefreshBody,

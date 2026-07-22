@@ -60,7 +60,7 @@ export function StatCard({
           <BlurView
             intensity={20}
             tint={isDark ? "dark" : "light"}
-            experimentalBlurMethod="dimezisBlurView"
+            blurMethod="dimezisBlurView"
             style={StyleSheet.absoluteFill}
           />
           <Text

@@ -44,17 +44,17 @@ function TimelineRow({ item }: { item: ActivityItem }) {
 
       <View className="flex-1 flex-row items-start justify-between pb-7 pl-2">
         <View className="flex-1 pr-3">
-          <Text className="text-base font-semibold tracking-tight text-foreground">
+          <Text className="text-lg font-extrabold tracking-tight text-foreground">
             {item.title}
           </Text>
-          <Text className="mt-0.5 text-xs text-muted">{item.meta}</Text>
+          <Text className="mt-0.5 text-sm text-muted">{item.meta}</Text>
         </View>
         {item.kind === "event" ? (
           <Text className="text-sm font-medium italic text-muted">
             {item.tag}
           </Text>
         ) : (
-          <Text className={`text-base font-bold ${amountColor}`}>
+          <Text className={`text-xl font-bold ${amountColor}`}>
             {item.amount}
           </Text>
         )}
@@ -70,7 +70,7 @@ function SectionLabel({ label }: { label: string }) {
         <View className="absolute bottom-0 top-0 w-px bg-border" />
         <View className="h-2.5 w-2.5 rounded-full border border-border bg-background" />
       </View>
-      <Text className="pl-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+      <Text className="pl-2 text-[13px] font-semibold uppercase tracking-[0.18em] text-muted">
         {label}
       </Text>
     </View>

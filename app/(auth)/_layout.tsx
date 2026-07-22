@@ -31,6 +31,10 @@ export default function AuthLayout() {
           name="forgot-password"
           options={{ animation: "slide_from_right" }}
         />
+        <Stack.Screen
+          name="verify-otp"
+          options={{ animation: "slide_from_right" }}
+        />
       </Stack>
     </SafeAreaProvider>
   );

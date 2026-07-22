@@ -7,12 +7,14 @@ type ProfileLogoutSheetProps = {
   isOpen: boolean;
   onOpenChange: (value: boolean) => void;
   onLogout: () => void;
+  isLoading?: boolean;
 };
 
 export function ProfileLogoutSheet({
   isOpen,
   onOpenChange,
   onLogout,
+  isLoading = false,
 }: ProfileLogoutSheetProps) {
   const insets = useSafeAreaInsets();
 
@@ -34,10 +36,18 @@ export function ProfileLogoutSheet({
           </View>
 
           <View className="gap-3">
-            <Button variant="danger" onPress={onLogout}>
-              Logout
+            <Button
+              variant="danger"
+              onPress={onLogout}
+              isDisabled={isLoading}
+            >
+              {isLoading ? "Logging out…" : "Logout"}
             </Button>
-            <Button variant="tertiary" onPress={() => onOpenChange(false)}>
+            <Button
+              variant="tertiary"
+              onPress={() => onOpenChange(false)}
+              isDisabled={isLoading}
+            >
               Cancel
             </Button>
           </View>

@@ -36,9 +36,9 @@ export function ForgotPasswordScreen() {
   const [successMessage, setSuccessMessage] = useState("");
 
   const forgotPassword = useForgotPassword({
-    onSuccess(message) {
+    onSuccess(result) {
       setErrors({});
-      setSuccessMessage(message);
+      setSuccessMessage(result.message);
     },
     onError(error) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);

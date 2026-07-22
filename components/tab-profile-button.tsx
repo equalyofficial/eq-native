@@ -1,7 +1,11 @@
-import { Image, Pressable } from "react-native";
+import { Pressable } from "react-native";
 import { router } from "expo-router";
+import { useAuthStore } from "@/store/use-auth-store";
+import { UserAvatar } from "@/components/user-avatar";
 
 export function TabProfileButton() {
+  const user = useAuthStore((state) => state.user);
+
   return (
     <Pressable
       onPress={() => router.push("/(protected)/profile")}
@@ -9,9 +13,10 @@ export function TabProfileButton() {
       accessibilityRole="button"
       accessibilityLabel="Open profile"
     >
-      <Image
-        source={{ uri: "https://i.pravatar.cc/160?img=19" }}
-        className="h-full w-full"
+      <UserAvatar
+        uri={user?.avatar_url}
+        name={user?.name}
+        textClassName="text-base font-bold text-foreground"
       />
     </Pressable>
   );

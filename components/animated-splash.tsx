@@ -56,7 +56,7 @@ export function AnimatedSplash({ onFinish }: { onFinish: () => void }) {
       <Animated.View style={logoStyle} className="items-center">
         <View className="overflow-hidden rounded-[36px] border-continuous">
           <Image
-            source={isDark ? logoDark : logoLight}
+            source={isDark ? logoLight : logoDark}
             style={{ height: 148, width: 148 }}
             resizeMode="cover"
           />

@@ -12,7 +12,10 @@ import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { AnimatedSplash } from "@/components/animated-splash";
 import { queryClient } from "@/lib/query";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { queryPersisterStorage } from "@/lib/storage";
+import { useAuthStore } from "@/store/use-auth-store";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { HeroUINativeProvider } from "heroui-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
@@ -26,6 +29,13 @@ import { Toasts } from "@backpackapp-io/react-native-toast";
 import "../global.css";
 
 const StyledSafeAreaProvider = withUniwind(SafeAreaProvider);
+
+const queryPersister = createSyncStoragePersister({
+  storage: queryPersisterStorage,
+});
+
+// Keep the native splash up until fonts + the persisted session are ready.
+SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
   initialRouteName: "(auth)",
@@ -42,23 +52,34 @@ export default function RootLayout() {
     Outfit_700Bold,
   });
   const [splashDone, setSplashDone] = useState(false);
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
+
+  const ready = (fontsLoaded || fontError) && hasHydrated;
 
   useEffect(() => {
-    if (fontsLoaded || fontError) {
+    if (ready) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, fontError]);
+  }, [ready]);
 
   useEffect(() => {
     SystemUI.setBackgroundColorAsync(bgColor);
   }, [bgColor]);
 
-  if (!fontsLoaded && !fontError) return null;
+  // Wait for fonts AND the persisted session to load before routing, so we
+  // never flash the auth screen for an already-logged-in user.
+  if (!ready) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style={isDark ? "light" : "dark"} />
-      <QueryClientProvider client={queryClient}>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{
+          persister: queryPersister,
+          maxAge: 1000 * 60 * 60 * 24,
+        }}
+      >
         <StyledSafeAreaProvider initialMetrics={initialWindowMetrics}>
           <HeroUINativeProvider>
             <Stack
@@ -92,7 +113,7 @@ export default function RootLayout() {
             />
           </HeroUINativeProvider>
         </StyledSafeAreaProvider>
-      </QueryClientProvider>
+      </PersistQueryClientProvider>
       {!splashDone && <AnimatedSplash onFinish={() => setSplashDone(true)} />}
     </GestureHandlerRootView>
   );

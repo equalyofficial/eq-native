@@ -18,7 +18,7 @@ export function ActivityHeroCard({ amount }: { amount: string }) {
         <Text className="text-accent">{symbol}</Text>
         {value}
       </Text>
-      <Text className="mt-1 text-xs text-muted">Net movement this month</Text>
+      <Text className="mt-1 text-sm text-muted">Net movement this month</Text>
     </View>
   );
 }
