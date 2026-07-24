@@ -15,6 +15,7 @@ import { AuthInlineLink } from "@/features/auth/components/auth-inline-link";
 import { AuthModeToggle } from "../components/auth-mode-toggle";
 import { LoginSchema } from "../auth.schemas";
 import { useLogin } from "../auth.hooks";
+import { useGoogleAuth } from "../use-google-auth";
 import { AppToast } from "@/lib/toast";
 
 type AuthMode = "email" | "phone";
@@ -41,6 +42,13 @@ export default function LoginScreen() {
       AppToast.error(error.message ?? "Unable to log in. Please try again.");
     },
   });
+
+  const { signIn: signInWithGoogle, isLoading: isGoogleLoading } = useGoogleAuth(
+    () => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      router.replace("/(protected)/(tabs)");
+    },
+  );
 
   function handleLogin() {
     const payload = {
@@ -173,8 +181,9 @@ export default function LoginScreen() {
         <View className="gap-3">
           <AuthSocialButton
             provider="google"
-            label="Login with Google"
-            onPress={() => console.log("Google login")}
+            label={isGoogleLoading ? "Connecting…" : "Login with Google"}
+            onPress={signInWithGoogle}
+            disabled={isGoogleLoading}
           />
         </View>
       </View>

@@ -13,6 +13,7 @@ import { View } from "react-native";
 import { AnimatedSplash } from "@/components/animated-splash";
 import { queryClient } from "@/lib/query";
 import { queryPersisterStorage } from "@/lib/storage";
+import { configureGoogleSignIn } from "@/lib/google-auth";
 import { useAuthStore } from "@/store/use-auth-store";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
@@ -36,6 +37,9 @@ const queryPersister = createSyncStoragePersister({
 
 // Keep the native splash up until fonts + the persisted session are ready.
 SplashScreen.preventAutoHideAsync();
+
+// Configure the native Google Sign-In SDK once, before any screen mounts.
+configureGoogleSignIn();
 
 export const unstable_settings = {
   initialRouteName: "(auth)",

@@ -7,6 +7,7 @@ type AuthSocialButtonProps = {
   provider: "google" | "apple";
   label: string;
   onPress: () => void;
+  disabled?: boolean;
 };
 
 const providerIconMap: Record<
@@ -30,6 +31,7 @@ export function AuthSocialButton({
   provider,
   label,
   onPress,
+  disabled = false,
 }: AuthSocialButtonProps) {
   const icon = providerIconMap[provider];
   const iconColor = useCSSVariable("--color-foreground") as string;
@@ -37,7 +39,8 @@ export function AuthSocialButton({
   return (
     <Pressable
       onPress={onPress}
-      className="min-h-14 w-full flex-row items-center justify-center rounded-full bg-card border border-border px-5"
+      disabled={disabled}
+      className="min-h-14 w-full flex-row items-center justify-center rounded-full bg-card border border-border px-5 disabled:opacity-50"
     >
       <View className="h-8 w-8 items-center justify-center ">
         {icon.family === "ant" ? (

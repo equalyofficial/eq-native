@@ -13,6 +13,7 @@ import { AuthDivider } from "@/features/auth/components/auth-divider";
 import { AuthSocialButton } from "@/features/auth/components/auth-social-button";
 import { AuthInlineLink } from "@/features/auth/components/auth-inline-link";
 import { useRegisterInitiate } from "../auth.hooks";
+import { useGoogleAuth } from "../use-google-auth";
 import { RegisterSchema } from "../auth.schemas";
 
 type RegisterErrors = {
@@ -59,6 +60,13 @@ export default function RegisterScreen() {
       });
     },
   });
+
+  const { signIn: signInWithGoogle, isLoading: isGoogleLoading } = useGoogleAuth(
+    () => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      router.replace("/(protected)/(tabs)");
+    },
+  );
 
   function handleRegister() {
     const result = RegisterSchema.safeParse({
@@ -178,8 +186,9 @@ export default function RegisterScreen() {
         <View className="gap-3">
           <AuthSocialButton
             provider="google"
-            label="Login with Google"
-            onPress={() => console.log("Google login")}
+            label={isGoogleLoading ? "Connecting…" : "Sign up with Google"}
+            onPress={signInWithGoogle}
+            disabled={isGoogleLoading}
           />
           {/* <AuthSocialButton */}
           {/*   provider="apple" */}

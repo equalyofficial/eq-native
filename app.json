@@ -9,13 +9,13 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.equaly.app",
+      "bundleIdentifier": "com.equaly.dev",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "com.equaly.app",
+      "package": "com.equaly.dev",
       "adaptiveIcon": {
         "backgroundColor": "#ffffff",
         "foregroundImage": "./assets/images/equaly-logo-light.png"
@@ -54,7 +54,13 @@
           "cameraPermission": "Allow Equaly to use the camera to capture receipts."
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.843304455080-m1menm8cov2qrg1dln5n726k45osl0tj"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

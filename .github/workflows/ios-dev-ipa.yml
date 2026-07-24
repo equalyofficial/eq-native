@@ -22,10 +22,16 @@ jobs:
 
       - name: Write .env
         run: |
-          echo "EXPO_PUBLIC_API_URL=${EXPO_PUBLIC_API_URL:-https://api.equaly.dev}" > .env
+          {
+            echo "EXPO_PUBLIC_API_URL=${EXPO_PUBLIC_API_URL:-http://192.168.16.157:3000}"
+            echo "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=${EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID:-843304455080-g4bmun8vrvo4bk5osjv5g0jg8fonpnev.apps.googleusercontent.com}"
+            echo "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=${EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID:-843304455080-m1menm8cov2qrg1dln5n726k45osl0tj.apps.googleusercontent.com}"
+          } > .env
           cat .env
         env:
           EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
+          EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: ${{ vars.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID }}
+          EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: ${{ vars.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID }}
 
       - name: Prebuild native iOS project
         run: bunx expo prebuild -p ios --clean
